@@ -1,0 +1,11 @@
+[workspace]
+members = [
+  "wired_handler"
+]
+resolver = "2"
+
+[workspace.dependencies]
+thiserror = "1.0.48"
+tokio = "1.32.0"
+log = "0.4.20"
+futures-util = "0.3.28"
