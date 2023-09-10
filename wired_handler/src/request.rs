@@ -3,7 +3,7 @@ use std::{ops::ControlFlow, sync::Arc};
 use futures_util::Future;
 use tokio::sync::RwLock;
 
-use crate::{GlobalState, SessionState, StateHolder};
+use crate::{router, GlobalState, SessionState, StateHolder};
 
 /// Holds all relevant request data for handling it
 #[derive(Debug)]
@@ -23,6 +23,53 @@ impl RequestCtx {
             session_ctx,
             global_ctx,
         }
+    }
+}
+
+// GETTERS
+impl RequestCtx {
+    /// Gets the request state. Usually not necessary, use `get_request`
+    /// etc. instead if you can
+    pub fn request_state(&self) -> &StateHolder {
+        &self.state
+    }
+
+    /// Gets the request state mutably. Usually not necessary, use `update_request`,
+    /// `remove_request` etc. instead if you can
+    pub fn request_state_mut(&mut self) -> &StateHolder {
+        &mut self.state
+    }
+
+    /// Gets the session state (as read guard). Blocks all write operations on
+    /// session state until dropped, so you probably do not want to use this.
+    /// Use `get_session` etc. instead if you can
+    pub async fn session_state(&self) -> tokio::sync::RwLockReadGuard<'_, router::SessionState> {
+        self.session_ctx.read().await
+    }
+
+    /// Gets the session state mutably (as write guard). Blocks all operations
+    /// on session state until dropped. Only use this if you want to update
+    /// multiple types in session data at once. Otherwise use `update_session`,
+    /// `remove_session` etc. instead
+    pub async fn session_state_mut(
+        &self,
+    ) -> tokio::sync::RwLockWriteGuard<'_, router::SessionState> {
+        self.session_ctx.write().await
+    }
+
+    /// Gets the global state (as read guard). Blocks all write operations on
+    /// global state until dropped, so you probably do not want to use this.
+    /// Use `get_global`, `remove_global` etc. instead if you can.
+    pub async fn global_state(&self) -> tokio::sync::RwLockReadGuard<'_, router::GlobalState> {
+        self.global_ctx.read().await
+    }
+
+    /// Gets the global state mutably (as write guard). Blocks all operations
+    /// on global state until dropped. Only use this if you want to update
+    /// multiple types in global data at once. Otherwise use `update_global`,
+    /// `remove_global` etc. instead
+    pub async fn global_state_mut(&self) -> tokio::sync::RwLockWriteGuard<'_, router::GlobalState> {
+        self.global_ctx.write().await
     }
 }
 
