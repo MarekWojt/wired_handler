@@ -42,10 +42,19 @@ impl<E: Send + Sync + 'static> Router<E> {
         &self,
         request: R,
         session_state: Arc<RwLock<SessionState>>,
-    ) -> RequestCtx {
+    ) -> RequestCtx
+    where
+        E: From<R::Error>,
+    {
         let mut request_ctx = RequestCtx::new(session_state, self.state.clone());
 
-        handle_handler!(request.apply_ctx(&mut request_ctx).await, request_ctx);
+        handle_handler!(
+            request
+                .apply_ctx(&mut request_ctx)
+                .await
+                .map_err(|err| E::from(err)),
+            request_ctx
+        );
 
         for handler in self.handlers.iter() {
             handle_handler!(handler(&mut request_ctx).await, request_ctx);
