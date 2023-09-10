@@ -12,7 +12,7 @@ struct Counter(i32);
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct ThirdHandlerExecuted;
 
-async fn first_handler(ctx: &RequestCtx) -> Result<ControlFlow<()>, String> {
+async fn first_handler(ctx: &mut RequestCtx) -> Result<ControlFlow<()>, String> {
     ctx.update_global::<Counter>(|old_value| {
         let mut counter = old_value.unwrap_or(Counter(0));
 
@@ -25,7 +25,7 @@ async fn first_handler(ctx: &RequestCtx) -> Result<ControlFlow<()>, String> {
     Ok(ControlFlow::Continue(()))
 }
 
-async fn second_handler(ctx: &RequestCtx) -> Result<ControlFlow<()>, String> {
+async fn second_handler(ctx: &mut RequestCtx) -> Result<ControlFlow<()>, String> {
     if ctx.get_request::<i32>() == Some(&12) {
         return Err("Fehler".to_string());
     }
@@ -41,6 +41,15 @@ async fn third_handler(ctx: &mut RequestCtx) -> Result<ControlFlow<()>, String> 
     ctx.provide_request(ThirdHandlerExecuted);
 
     Ok(ControlFlow::Continue(()))
+}
+
+#[derive(Debug, PartialEq, Eq)]
+struct Error(String);
+
+impl From<String> for Error {
+    fn from(value: String) -> Self {
+        Self(value)
+    }
 }
 
 struct SomeRequest(i32);
@@ -67,7 +76,7 @@ fn run_test() {
 
 async fn test() {
     let state = GlobalState::default();
-    let handler = Router::new(
+    let handler = Router::<Error>::new(
         handlers!([first_handler, second_handler, third_handler]),
         Arc::new(RwLock::new(state)),
     );
@@ -80,7 +89,7 @@ async fn test() {
         assert_eq!(result.get_request::<i32>(), Some(&1));
         assert_eq!(result.get_session::<i32>().await, Some(1));
         assert_eq!(result.get_global::<Counter>().await, Some(Counter(1)));
-        assert_eq!(result.get_request::<String>(), None);
+        assert_eq!(result.get_request::<Error>(), None);
         assert_eq!(
             result.get_request::<ThirdHandlerExecuted>(),
             Some(&ThirdHandlerExecuted)
@@ -92,7 +101,7 @@ async fn test() {
         assert_eq!(result.get_request::<i32>(), Some(&2));
         assert_eq!(result.get_session::<i32>().await, Some(3)); // 1 + 2 = 3
         assert_eq!(result.get_global::<Counter>().await, Some(Counter(2)));
-        assert_eq!(result.get_request::<String>(), None);
+        assert_eq!(result.get_request::<Error>(), None);
         assert_eq!(
             result.get_request::<ThirdHandlerExecuted>(),
             Some(&ThirdHandlerExecuted)
@@ -104,7 +113,7 @@ async fn test() {
         assert_eq!(result.get_request::<i32>(), Some(&2));
         assert_eq!(result.get_session::<i32>().await, Some(2));
         assert_eq!(result.get_global::<Counter>().await, Some(Counter(3)));
-        assert_eq!(result.get_request::<String>(), None);
+        assert_eq!(result.get_request::<Error>(), None);
         assert_eq!(
             result.get_request::<ThirdHandlerExecuted>(),
             Some(&ThirdHandlerExecuted)
@@ -116,7 +125,10 @@ async fn test() {
         assert_eq!(result.get_request::<i32>(), Some(&12));
         assert_eq!(result.get_session::<i32>().await, Some(15)); // 1 + 2 + 12 = 15
         assert_eq!(result.get_global::<Counter>().await, Some(Counter(4)));
-        assert_eq!(result.get_request::<String>(), Some(&"Fehler".to_string()));
+        assert_eq!(
+            result.get_request::<Error>(),
+            Some(&Error("Fehler".to_string()))
+        );
         assert_eq!(result.get_request::<ThirdHandlerExecuted>(), None);
     }
 

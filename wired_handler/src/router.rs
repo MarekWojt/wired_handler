@@ -25,6 +25,9 @@ macro_rules! handle_handler {
 }
 
 impl<E: Send + Sync + 'static> Router<E> {
+    /// Creates a new `Router`. Use the `handlers!` macro to specify handlers.
+    /// The returned error type does not have to be the exact type of `E`. `E`
+    /// only needs to implement `From<YourErrorType>`
     pub fn new(handlers: Arc<[Handler<E>]>, state: Arc<RwLock<GlobalState>>) -> Self {
         Self { state, handlers }
     }
