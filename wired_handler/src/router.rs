@@ -83,8 +83,8 @@ macro_rules! state_wrapper {
             self.state.provide(data)
         }
 
-        pub fn remove<T: Send + Sync + 'static>(&mut self) {
-            self.state.remove::<T>();
+        pub fn remove<T: Send + Sync + 'static>(&mut self) -> Option<T> {
+            self.state.remove::<T>()
         }
     };
 }
