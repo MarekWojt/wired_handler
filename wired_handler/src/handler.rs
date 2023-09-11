@@ -3,6 +3,7 @@ use std::ops::ControlFlow;
 
 use crate::RequestCtx;
 
+/// A handler that can be used in the `Router`
 pub type Handler<E> = fn(&mut RequestCtx) -> BoxFuture<'_, Result<ControlFlow<()>, E>>;
 
 /// Turns an async function into a `Handler` (by boxing it)
@@ -13,7 +14,7 @@ macro_rules! make_handler {
     };
 }
 
-/// Convenience macro for creating the list of `Handler`s
+/// Creates a list of `Handler`s
 #[macro_export]
 macro_rules! handlers {
     ([
@@ -25,7 +26,8 @@ macro_rules! handlers {
     };
 }
 
-/// Runs handler and converts error if returned
+/// Runs handler and converts its error if returned. Do not call this, this is
+/// used by the `handlers!` and `make_handler` macro
 pub async fn run_handler_and_convert_error<
     'a,
     EIn,

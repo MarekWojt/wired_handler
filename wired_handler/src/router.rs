@@ -64,6 +64,7 @@ impl<E: Send + Sync + 'static> Router<E> {
     }
 }
 
+/// Holds the global state
 #[derive(Debug, Default)]
 pub struct GlobalState {
     pub(crate) state: StateHolder,
@@ -71,18 +72,22 @@ pub struct GlobalState {
 
 macro_rules! state_wrapper {
     () => {
+        /// Returns a reference to data by type
         pub fn get<T: Send + Sync + 'static>(&self) -> Option<&T> {
             self.state.get::<T>()
         }
 
+        /// Returns data by type
         pub fn get_cloned<T: Clone + Send + Sync + 'static>(&self) -> Option<T> {
             self.get::<T>().map(|d| d.clone())
         }
 
+        /// Inserts data by type
         pub fn provide<T: Send + Sync + 'static>(&mut self, data: T) {
             self.state.provide(data)
         }
 
+        /// Removes data by type and returns it
         pub fn remove<T: Send + Sync + 'static>(&mut self) -> Option<T> {
             self.state.remove::<T>()
         }
@@ -93,6 +98,7 @@ impl GlobalState {
     state_wrapper!();
 }
 
+/// Holds the session state
 #[derive(Debug, Default)]
 pub struct SessionState {
     pub(crate) state: StateHolder,
