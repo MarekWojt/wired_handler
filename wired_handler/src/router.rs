@@ -5,10 +5,19 @@ use tokio::sync::RwLock;
 use crate::{Handler, Request, RequestCtx, StateHolder};
 
 /// Combines one or multiple `Handler`s and one `GlobalState` to handle requests
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Router<E: Send + Sync + 'static> {
     state: Arc<RwLock<GlobalState>>,
     handlers: Arc<[Handler<E>]>,
+}
+
+impl<E: Send + Sync + 'static> Clone for Router<E> {
+    fn clone(&self) -> Self {
+        Self {
+            state: self.state.clone(),
+            handlers: self.handlers.clone(),
+        }
+    }
 }
 
 macro_rules! handle_handler {
