@@ -4,7 +4,7 @@ use std::{ops::ControlFlow, sync::Arc};
 
 use tokio::{runtime::Runtime, sync::RwLock};
 
-use crate::{handlers, GlobalState, Request, RequestCtx, Router, SessionState};
+use crate::{handlers, GlobalState, Request, RequestCtx, RequestResult, Router, SessionState};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Counter(i32);
@@ -85,59 +85,56 @@ async fn test() {
     let session2 = Arc::new(RwLock::new(SessionState::default()));
 
     {
-        let result = handler.handle(SomeRequest(1), session1.clone()).await;
-        assert_eq!(result.get_request::<i32>(), Some(&1));
-        assert_eq!(result.get_session::<i32>().await, Some(1));
-        assert_eq!(result.get_global::<Counter>().await, Some(Counter(1)));
-        assert_eq!(result.get_request::<Error>(), None);
+        let RequestResult(ctx, error) = handler.handle(SomeRequest(1), session1.clone()).await;
+        assert_eq!(ctx.get_request::<i32>(), Some(&1));
+        assert_eq!(ctx.get_session::<i32>().await, Some(1));
+        assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(1)));
+        assert_eq!(error, Ok(()));
         assert_eq!(
-            result.get_request::<ThirdHandlerExecuted>(),
+            ctx.get_request::<ThirdHandlerExecuted>(),
             Some(&ThirdHandlerExecuted)
         );
     }
 
     {
-        let result = handler.handle(SomeRequest(2), session1.clone()).await;
-        assert_eq!(result.get_request::<i32>(), Some(&2));
-        assert_eq!(result.get_session::<i32>().await, Some(3)); // 1 + 2 = 3
-        assert_eq!(result.get_global::<Counter>().await, Some(Counter(2)));
-        assert_eq!(result.get_request::<Error>(), None);
+        let RequestResult(ctx, error) = handler.handle(SomeRequest(2), session1.clone()).await;
+        assert_eq!(ctx.get_request::<i32>(), Some(&2));
+        assert_eq!(ctx.get_session::<i32>().await, Some(3)); // 1 + 2 = 3
+        assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(2)));
+        assert_eq!(error, Ok(()));
         assert_eq!(
-            result.get_request::<ThirdHandlerExecuted>(),
+            ctx.get_request::<ThirdHandlerExecuted>(),
             Some(&ThirdHandlerExecuted)
         );
     }
 
     {
-        let result = handler.handle(SomeRequest(2), session2).await;
-        assert_eq!(result.get_request::<i32>(), Some(&2));
-        assert_eq!(result.get_session::<i32>().await, Some(2));
-        assert_eq!(result.get_global::<Counter>().await, Some(Counter(3)));
-        assert_eq!(result.get_request::<Error>(), None);
+        let RequestResult(ctx, error) = handler.handle(SomeRequest(2), session2).await;
+        assert_eq!(ctx.get_request::<i32>(), Some(&2));
+        assert_eq!(ctx.get_session::<i32>().await, Some(2));
+        assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(3)));
+        assert_eq!(error, Ok(()));
         assert_eq!(
-            result.get_request::<ThirdHandlerExecuted>(),
+            ctx.get_request::<ThirdHandlerExecuted>(),
             Some(&ThirdHandlerExecuted)
         );
     }
 
     {
-        let result = handler.handle(SomeRequest(12), session1.clone()).await;
-        assert_eq!(result.get_request::<i32>(), Some(&12));
-        assert_eq!(result.get_session::<i32>().await, Some(15)); // 1 + 2 + 12 = 15
-        assert_eq!(result.get_global::<Counter>().await, Some(Counter(4)));
-        assert_eq!(
-            result.get_request::<Error>(),
-            Some(&Error("Fehler".to_string()))
-        );
-        assert_eq!(result.get_request::<ThirdHandlerExecuted>(), None);
+        let RequestResult(ctx, error) = handler.handle(SomeRequest(12), session1.clone()).await;
+        assert_eq!(ctx.get_request::<i32>(), Some(&12));
+        assert_eq!(ctx.get_session::<i32>().await, Some(15)); // 1 + 2 + 12 = 15
+        assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(4)));
+        assert_eq!(error, Err(Error("Fehler".to_string())));
+        assert_eq!(ctx.get_request::<ThirdHandlerExecuted>(), None);
     }
 
     {
-        let result = handler.handle(SomeRequest(42), session1.clone()).await;
-        assert_eq!(result.get_request::<i32>(), Some(&42));
-        assert_eq!(result.get_session::<i32>().await, Some(57)); // 1 + 2 + 12 + 42 = 57
-        assert_eq!(result.get_global::<Counter>().await, Some(Counter(5)));
-        assert_eq!(result.get_request::<String>(), None);
-        assert_eq!(result.get_request::<ThirdHandlerExecuted>(), None);
+        let RequestResult(ctx, error) = handler.handle(SomeRequest(42), session1.clone()).await;
+        assert_eq!(ctx.get_request::<i32>(), Some(&42));
+        assert_eq!(ctx.get_session::<i32>().await, Some(57)); // 1 + 2 + 12 + 42 = 57
+        assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(5)));
+        assert_eq!(error, Ok(()));
+        assert_eq!(ctx.get_request::<ThirdHandlerExecuted>(), None);
     }
 }

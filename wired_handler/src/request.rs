@@ -337,9 +337,36 @@ impl RequestCtx {
     }
 }
 
+#[derive(Debug)]
+pub struct RequestResult<E>(pub RequestCtx, pub Result<(), E>);
+
+impl<E> From<RequestResult<E>> for (RequestCtx, Result<(), E>) {
+    fn from(value: RequestResult<E>) -> Self {
+        (value.0, value.1)
+    }
+}
+
+impl<E> From<(RequestCtx, Result<(), E>)> for RequestResult<E> {
+    fn from(value: (RequestCtx, Result<(), E>)) -> Self {
+        RequestResult(value.0, value.1)
+    }
+}
+
+impl<E> RequestResult<E> {
+    pub fn error(&self) -> Result<(), &E> {
+        self.1.as_ref().copied()
+    }
+
+    pub fn ctx(&self) -> &RequestCtx {
+        &self.0
+    }
+}
+
 /// Can be handled by a `Router` when implemented
 pub trait Request {
     type Error: Send + Sync + 'static;
+
+    #[allow(async_fn_in_trait)]
     /// Applies the request data to the `RequestCtx` by providing needed data
     async fn apply_ctx(self, ctx: &mut RequestCtx) -> Result<ControlFlow<()>, Self::Error>;
 }
