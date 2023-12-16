@@ -366,7 +366,9 @@ impl<E> RequestResult<E> {
 pub trait Request {
     type Error: Send + Sync + 'static;
 
-    #[allow(async_fn_in_trait)]
     /// Applies the request data to the `RequestCtx` by providing needed data
-    async fn apply_ctx(self, ctx: &mut RequestCtx) -> Result<ControlFlow<()>, Self::Error>;
+    fn apply_ctx(
+        self,
+        ctx: &mut RequestCtx,
+    ) -> impl Future<Output = Result<ControlFlow<()>, Self::Error>> + Send;
 }
