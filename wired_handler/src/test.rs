@@ -4,13 +4,29 @@ use std::{ops::ControlFlow, sync::Arc};
 
 use tokio::{runtime::Runtime, sync::RwLock};
 
-use crate::{handlers, GlobalState, Request, RequestCtx, RequestResult, Router, SessionState};
+use crate::{
+    handlers, GetDerived, GlobalState, Request, RequestCtx, RequestResult, Router, SessionState,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct Counter(i32);
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct ThirdHandlerExecuted;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct IsEven;
+
+impl GetDerived for IsEven {
+    async fn get_derived(request_ctx: &RequestCtx) -> Option<Self> {
+        let counter = request_ctx.get_global::<Counter>().await?;
+        if counter.0 % 2 == 0 {
+            Some(IsEven)
+        } else {
+            None
+        }
+    }
+}
 
 async fn first_handler(ctx: &mut RequestCtx) -> Result<ControlFlow<()>, String> {
     ctx.update_global::<Counter>(|old_value| {
@@ -89,6 +105,7 @@ async fn test() {
         assert_eq!(ctx.get_request::<i32>(), Some(&1));
         assert_eq!(ctx.get_session::<i32>().await, Some(1));
         assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(1)));
+        assert_eq!(ctx.get_derived::<IsEven>().await, None);
         assert_eq!(error, Ok(()));
         assert_eq!(
             ctx.get_request::<ThirdHandlerExecuted>(),
@@ -101,6 +118,7 @@ async fn test() {
         assert_eq!(ctx.get_request::<i32>(), Some(&2));
         assert_eq!(ctx.get_session::<i32>().await, Some(3)); // 1 + 2 = 3
         assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(2)));
+        assert_eq!(ctx.get_derived::<IsEven>().await, Some(IsEven));
         assert_eq!(error, Ok(()));
         assert_eq!(
             ctx.get_request::<ThirdHandlerExecuted>(),
@@ -113,6 +131,7 @@ async fn test() {
         assert_eq!(ctx.get_request::<i32>(), Some(&2));
         assert_eq!(ctx.get_session::<i32>().await, Some(2));
         assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(3)));
+        assert_eq!(ctx.get_derived::<IsEven>().await, None);
         assert_eq!(error, Ok(()));
         assert_eq!(
             ctx.get_request::<ThirdHandlerExecuted>(),
@@ -125,6 +144,7 @@ async fn test() {
         assert_eq!(ctx.get_request::<i32>(), Some(&12));
         assert_eq!(ctx.get_session::<i32>().await, Some(15)); // 1 + 2 + 12 = 15
         assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(4)));
+        assert_eq!(ctx.get_derived::<IsEven>().await, Some(IsEven));
         assert_eq!(error, Err(Error("Fehler".to_string())));
         assert_eq!(ctx.get_request::<ThirdHandlerExecuted>(), None);
     }
@@ -134,6 +154,7 @@ async fn test() {
         assert_eq!(ctx.get_request::<i32>(), Some(&42));
         assert_eq!(ctx.get_session::<i32>().await, Some(57)); // 1 + 2 + 12 + 42 = 57
         assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(5)));
+        assert_eq!(ctx.get_derived::<IsEven>().await, None);
         assert_eq!(error, Ok(()));
         assert_eq!(ctx.get_request::<ThirdHandlerExecuted>(), None);
     }

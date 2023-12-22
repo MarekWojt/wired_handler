@@ -5,6 +5,13 @@ use tokio::sync::RwLock;
 
 use crate::{router, GlobalState, SessionState, StateHolder};
 
+/// Gets data by type from `request_ctx`
+pub trait GetDerived: Sized {
+    fn get_derived(
+        request_ctx: &RequestCtx,
+    ) -> impl std::future::Future<Output = Option<Self>> + Send;
+}
+
 /// Holds all relevant request data for handling it
 #[derive(Debug)]
 pub struct RequestCtx {
@@ -95,6 +102,11 @@ impl RequestCtx {
     pub async fn get_global<T: Clone + Send + Sync + 'static>(&self) -> Option<T> {
         let global_ctx = self.global_ctx.read().await;
         global_ctx.get::<T>().cloned()
+    }
+
+    /// Gets derived data by type
+    pub async fn get_derived<T: GetDerived>(&self) -> Option<T> {
+        T::get_derived(self).await
     }
 }
 
