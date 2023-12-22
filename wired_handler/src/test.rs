@@ -5,7 +5,8 @@ use std::{ops::ControlFlow, sync::Arc};
 use tokio::{runtime::Runtime, sync::RwLock};
 
 use crate::{
-    handlers, GetDerived, GlobalState, Request, RequestCtx, RequestResult, Router, SessionState,
+    handlers, GetCached, GetDerived, GlobalState, Request, RequestCtx, RequestResult, Router,
+    SessionState,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -17,6 +18,12 @@ struct ThirdHandlerExecuted;
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct IsEven;
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+enum Oddity {
+    Even,
+    Odd,
+}
+
 impl GetDerived for IsEven {
     async fn get_derived(request_ctx: &RequestCtx) -> Option<Self> {
         let counter = request_ctx.get_global::<Counter>().await?;
@@ -25,6 +32,24 @@ impl GetDerived for IsEven {
         } else {
             None
         }
+    }
+}
+
+impl GetCached for Oddity {
+    async fn get_cached(request_ctx: &mut RequestCtx) -> Option<Self> {
+        let counter = request_ctx.get_global::<Counter>().await?;
+        if let Some(oddity) = request_ctx.get_request_cloned::<Oddity>() {
+            return Some(oddity);
+        }
+        let oddity = if counter.0 % 2 == 0 {
+            Oddity::Even
+        } else {
+            Oddity::Odd
+        };
+
+        request_ctx.provide_request(oddity.clone());
+
+        Some(oddity)
     }
 }
 
@@ -55,6 +80,7 @@ async fn second_handler(ctx: &mut RequestCtx) -> Result<ControlFlow<()>, String>
 
 async fn third_handler(ctx: &mut RequestCtx) -> Result<ControlFlow<()>, String> {
     ctx.provide_request(ThirdHandlerExecuted);
+    ctx.get_cached::<Oddity>().await;
 
     Ok(ControlFlow::Continue(()))
 }
@@ -111,6 +137,7 @@ async fn test() {
             ctx.get_request::<ThirdHandlerExecuted>(),
             Some(&ThirdHandlerExecuted)
         );
+        assert_eq!(ctx.get_request::<Oddity>(), Some(&Oddity::Odd));
     }
 
     {
@@ -124,6 +151,7 @@ async fn test() {
             ctx.get_request::<ThirdHandlerExecuted>(),
             Some(&ThirdHandlerExecuted)
         );
+        assert_eq!(ctx.get_request::<Oddity>(), Some(&Oddity::Even));
     }
 
     {
@@ -137,6 +165,7 @@ async fn test() {
             ctx.get_request::<ThirdHandlerExecuted>(),
             Some(&ThirdHandlerExecuted)
         );
+        assert_eq!(ctx.get_request::<Oddity>(), Some(&Oddity::Odd));
     }
 
     {
@@ -147,6 +176,7 @@ async fn test() {
         assert_eq!(ctx.get_derived::<IsEven>().await, Some(IsEven));
         assert_eq!(error, Err(Error("Fehler".to_string())));
         assert_eq!(ctx.get_request::<ThirdHandlerExecuted>(), None);
+        assert_eq!(ctx.get_request::<Oddity>(), None); // no `Oddity` because third handler isn't run
     }
 
     {
@@ -157,5 +187,6 @@ async fn test() {
         assert_eq!(ctx.get_derived::<IsEven>().await, None);
         assert_eq!(error, Ok(()));
         assert_eq!(ctx.get_request::<ThirdHandlerExecuted>(), None);
+        assert_eq!(ctx.get_request::<Oddity>(), None); // no `Oddity` because third handler isn't run
     }
 }

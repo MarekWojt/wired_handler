@@ -12,6 +12,14 @@ pub trait GetDerived: Sized {
     ) -> impl std::future::Future<Output = Option<Self>> + Send;
 }
 
+/// Gets cached data by type from `request_ctx`. Inserts at the first time.
+/// It might also advance types, e.g. decode a request and write it back
+pub trait GetCached: Sized {
+    fn get_cached(
+        request_ctx: &mut RequestCtx,
+    ) -> impl std::future::Future<Output = Option<Self>> + Send;
+}
+
 /// Holds all relevant request data for handling it
 #[derive(Debug)]
 pub struct RequestCtx {
@@ -107,6 +115,11 @@ impl RequestCtx {
     /// Gets derived data by type
     pub async fn get_derived<T: GetDerived>(&self) -> Option<T> {
         T::get_derived(self).await
+    }
+
+    /// Gets cached data by type, inserts it at the first time
+    pub async fn get_cached<T: GetCached>(&mut self) -> Option<T> {
+        T::get_cached(self).await
     }
 }
 
