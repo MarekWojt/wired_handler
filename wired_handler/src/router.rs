@@ -2,7 +2,7 @@ use std::{fmt::Debug, ops::ControlFlow, sync::Arc};
 
 use tokio::sync::RwLock;
 
-use crate::{Handler, Request, RequestCtx, RequestResult, StateHolder};
+use crate::{Handler, Request, RequestCtx, StateHolder};
 
 /// Combines one or multiple `Handler`s and one `GlobalState` to handle requests
 #[derive(Debug)]
@@ -24,9 +24,9 @@ macro_rules! handle_handler {
     ($result:expr, $request_ctx:expr) => {{
         match $result {
             Err(err) => {
-                return RequestResult($request_ctx, Err(err));
+                return ($request_ctx, Err(err));
             }
-            Ok(ControlFlow::Break(_)) => return RequestResult($request_ctx, Ok(())),
+            Ok(ControlFlow::Break(_)) => return ($request_ctx, Ok(())),
             _ => {}
         };
     }};
@@ -50,7 +50,7 @@ impl<E: Send + Sync + 'static> Router<E> {
         &self,
         request: R,
         session_state: Arc<RwLock<SessionState>>,
-    ) -> RequestResult<E>
+    ) -> (RequestCtx, Result<(), E>)
     where
         E: From<R::Error>,
     {
@@ -68,7 +68,7 @@ impl<E: Send + Sync + 'static> Router<E> {
             handle_handler!(handler(&mut request_ctx).await, request_ctx);
         }
 
-        RequestResult(request_ctx, Ok(()))
+        (request_ctx, Ok(()))
     }
 }
 

@@ -5,8 +5,7 @@ use std::{ops::ControlFlow, sync::Arc};
 use tokio::{runtime::Runtime, sync::RwLock};
 
 use crate::{
-    handlers, GetCached, GetDerived, GlobalState, Request, RequestCtx, RequestResult, Router,
-    SessionState,
+    handlers, GetCached, GetDerived, GlobalState, Request, RequestCtx, Router, SessionState,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -127,7 +126,7 @@ async fn test() {
     let session2 = Arc::new(RwLock::new(SessionState::default()));
 
     {
-        let RequestResult(ctx, error) = handler.handle(SomeRequest(1), session1.clone()).await;
+        let (ctx, error) = handler.handle(SomeRequest(1), session1.clone()).await;
         assert_eq!(ctx.get_request::<i32>(), Some(&1));
         assert_eq!(ctx.get_session::<i32>().await, Some(1));
         assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(1)));
@@ -141,7 +140,7 @@ async fn test() {
     }
 
     {
-        let RequestResult(ctx, error) = handler.handle(SomeRequest(2), session1.clone()).await;
+        let (ctx, error) = handler.handle(SomeRequest(2), session1.clone()).await;
         assert_eq!(ctx.get_request::<i32>(), Some(&2));
         assert_eq!(ctx.get_session::<i32>().await, Some(3)); // 1 + 2 = 3
         assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(2)));
@@ -155,7 +154,7 @@ async fn test() {
     }
 
     {
-        let RequestResult(ctx, error) = handler.handle(SomeRequest(2), session2).await;
+        let (ctx, error) = handler.handle(SomeRequest(2), session2).await;
         assert_eq!(ctx.get_request::<i32>(), Some(&2));
         assert_eq!(ctx.get_session::<i32>().await, Some(2));
         assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(3)));
@@ -169,7 +168,7 @@ async fn test() {
     }
 
     {
-        let RequestResult(ctx, error) = handler.handle(SomeRequest(12), session1.clone()).await;
+        let (ctx, error) = handler.handle(SomeRequest(12), session1.clone()).await;
         assert_eq!(ctx.get_request::<i32>(), Some(&12));
         assert_eq!(ctx.get_session::<i32>().await, Some(15)); // 1 + 2 + 12 = 15
         assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(4)));
@@ -180,7 +179,7 @@ async fn test() {
     }
 
     {
-        let RequestResult(ctx, error) = handler.handle(SomeRequest(42), session1.clone()).await;
+        let (ctx, error) = handler.handle(SomeRequest(42), session1.clone()).await;
         assert_eq!(ctx.get_request::<i32>(), Some(&42));
         assert_eq!(ctx.get_session::<i32>().await, Some(57)); // 1 + 2 + 12 + 42 = 57
         assert_eq!(ctx.get_global::<Counter>().await, Some(Counter(5)));
