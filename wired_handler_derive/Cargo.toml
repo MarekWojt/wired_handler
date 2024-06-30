@@ -1,0 +1,17 @@
+[package]
+name = "wired_handler_derive"
+version.workspace = true
+edition = "2021"
+description = "wired_handler's derive macros"
+license = "MIT"
+repository = "https://github.com/MarekWojt/wired_handler"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn.workspace = true
+quote.workspace = true
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "rt-multi-thread"] }

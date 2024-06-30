@@ -1,18 +1,15 @@
 [package]
 name = "wired_handler"
-version = "0.3.0"
+version.workspace = true
 edition = "2021"
 description = "Wired's handler library"
 license = "MIT"
 repository = "https://github.com/MarekWojt/wired_handler"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-thiserror.workspace = true
 tokio = { workspace = true, features = ["sync"] }
-log.workspace = true
-futures-util.workspace = true
+wired_handler_derive.workspace = true
 
 [dev-dependencies]
-tokio = { features = ["rt-multi-thread"] }
+tokio = { workspace = true, features = ["rt-multi-thread"] }
+thiserror.workspace = true

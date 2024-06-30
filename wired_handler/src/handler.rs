@@ -1,42 +1,39 @@
-use futures_util::{future::BoxFuture, Future};
-use std::ops::ControlFlow;
+use std::future::Future;
 
-use crate::RequestCtx;
+use crate::{Context, ContextBuilder, State};
 
-/// A handler that can be used in the `Router`
-pub type Handler<E> = fn(&mut RequestCtx) -> BoxFuture<'_, Result<ControlFlow<()>, E>>;
-
-/// Turns an async function into a `Handler` (by boxing it)
-#[macro_export]
-macro_rules! make_handler {
-    ($fn:expr) => {
-        |ctx| ::std::boxed::Box::pin($crate::run_handler_and_convert_error($fn, ctx))
-    };
+/// For handling requests, holds the global `State`
+#[derive(Debug, Clone)]
+pub struct Handler<CIn: Context, COut: Context, S: State + Clone, F: Future<Output = COut>> {
+    state: S,
+    handler: fn(CIn) -> F,
 }
 
-/// Creates a list of `Handler`s
-#[macro_export]
-macro_rules! handlers {
-    ([
-        $($fn:expr),*
-    ]) => {
-        ::std::sync::Arc::new([
-            $($crate::make_handler!($fn)),*
-        ])
-    };
-}
+impl<CIn: Context, COut: Context, S: State + Clone, F: Future<Output = COut>>
+    Handler<CIn, COut, S, F>
+{
+    /// Creates a new `Handler` from the global `State` `S` and a handler fn
+    pub fn new(state: S, handler: fn(CIn) -> F) -> Self {
+        Self { state, handler }
+    }
 
-/// Runs handler and converts its error if returned. Do not call this, this is
-/// used by the `handlers!` and `make_handler!` macro
-pub async fn run_handler_and_convert_error<
-    'a,
-    EIn,
-    EOut: From<EIn>,
-    R: Future<Output = Result<ControlFlow<()>, EIn>>,
-    F: FnOnce(&'a mut RequestCtx) -> R,
->(
-    callback: F,
-    ctx: &'a mut RequestCtx,
-) -> Result<ControlFlow<()>, EOut> {
-    Ok(callback(ctx).await?)
+    /// Gets the global state
+    pub fn state(&self) -> &S {
+        &self.state
+    }
+
+    /// Gets the global state mutably
+    pub fn state_mut(&mut self) -> &mut S {
+        &mut self.state
+    }
+
+    /// Handles a request. Accepts a `ContextBuilder` `B` which will be completed to a `Context` with the global state `S`, which is then passed to the handler fn
+    pub async fn handle<B: ContextBuilder<S, Output = CIn>>(
+        &self,
+        builder: B,
+    ) -> Result<COut, B::Error> {
+        let ctx = builder.build(self.state.clone()).await?;
+        let handler = self.handler;
+        Ok(handler(ctx).await)
+    }
 }
