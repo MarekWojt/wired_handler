@@ -85,20 +85,6 @@ pub fn derive_state_sync_provide(token_stream: TokenStream) -> TokenStream {
 // ### SYNC MUTABLE ###
 // ####################
 
-#[proc_macro_derive(StateSyncMutableGet)]
-pub fn derive_state_sync_mutable_get(token_stream: TokenStream) -> TokenStream {
-    let derive_input = parse_macro_input!(token_stream as DeriveInput);
-    let ident = derive_input.ident;
-    quote! {
-        impl StateSyncMutableGet for #ident {
-            fn get<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self) -> ::std::option::Option<impl ::std::ops::Deref<Target = T>> {
-                self.0.get::<T>()
-            }
-        }
-    }
-    .into()
-}
-
 #[proc_macro_derive(StateSyncMutableGetMut)]
 pub fn derive_state_sync_mutable_get_mut(token_stream: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(token_stream as DeriveInput);
@@ -107,20 +93,6 @@ pub fn derive_state_sync_mutable_get_mut(token_stream: TokenStream) -> TokenStre
         impl StateSyncMutableGetMut for #ident {
             fn get_mut<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self) -> ::std::option::Option<impl ::std::ops::DerefMut<Target = T>> {
                 self.0.get_mut::<T>()
-            }
-        }
-    }
-    .into()
-}
-
-#[proc_macro_derive(StateSyncMutableGetCloned)]
-pub fn derive_state_sync_mutable_get_cloned(token_stream: TokenStream) -> TokenStream {
-    let derive_input = parse_macro_input!(token_stream as DeriveInput);
-    let ident = derive_input.ident;
-    quote! {
-        impl StateSyncMutableGetCloned for #ident {
-            fn get_cloned<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&mut self) -> ::std::option::Option<T> {
-                self.0.get_cloned::<T>()
             }
         }
     }
@@ -217,20 +189,6 @@ pub fn derive_state_async_provide(token_stream: TokenStream) -> TokenStream {
 // ### ASYNC MUTABLE ###
 // #####################
 
-#[proc_macro_derive(StateAsyncMutableGet)]
-pub fn derive_state_async_mutable_get(token_stream: TokenStream) -> TokenStream {
-    let derive_input = parse_macro_input!(token_stream as DeriveInput);
-    let ident = derive_input.ident;
-    quote! {
-        impl StateAsyncMutableGet for #ident {
-            async fn get<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self) -> ::std::option::Option<impl ::std::ops::Deref<Target = T>> {
-                self.0.get::<T>().await
-            }
-        }
-    }
-    .into()
-}
-
 #[proc_macro_derive(StateAsyncMutableGetMut)]
 pub fn derive_state_async_mutable_get_mut(token_stream: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(token_stream as DeriveInput);
@@ -239,20 +197,6 @@ pub fn derive_state_async_mutable_get_mut(token_stream: TokenStream) -> TokenStr
         impl StateAsyncMutableGetMut for #ident {
             async fn get_mut<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self) -> ::std::option::Option<impl ::std::ops::DerefMut<Target = T>> {
                 self.0.get_mut::<T>().await
-            }
-        }
-    }
-    .into()
-}
-
-#[proc_macro_derive(StateAsyncMutableGetCloned)]
-pub fn derive_state_async_mutable_get_cloned(token_stream: TokenStream) -> TokenStream {
-    let derive_input = parse_macro_input!(token_stream as DeriveInput);
-    let ident = derive_input.ident;
-    quote! {
-        impl StateAsyncMutableGetCloned for #ident {
-            async fn get_cloned<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&mut self) -> ::std::option::Option<T> {
-                self.0.get_cloned::<T>().await
             }
         }
     }
