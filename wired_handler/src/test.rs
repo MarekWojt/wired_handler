@@ -2,8 +2,9 @@
 use std::collections::HashMap;
 
 use crate::{
-    Context, ContextBuilder, GetState, Handler, State, StateAsyncGet, StateAsyncGetCloned,
-    StateAsyncGetMut, StateAsyncProvide,
+    plain::PlainState, Context, ContextBuilder, GetState, Handler, State, StateAsyncGet,
+    StateAsyncGetCloned, StateAsyncGetMut, StateAsyncProvide, StateSyncGet, StateSyncGetCloned,
+    StateSyncMutableGetMut, StateSyncMutableProvide,
 };
 use tokio::runtime::Runtime;
 
@@ -64,14 +65,13 @@ struct PreSessionState(AsyncDoubleRwLockState);
 #[derive(
     Debug,
     Default,
-    Clone,
     State,
-    StateAsyncGet,
-    StateAsyncGetCloned,
-    StateAsyncGetMut,
-    StateAsyncProvide,
+    StateSyncGet,
+    StateSyncGetCloned,
+    StateSyncMutableGetMut,
+    StateSyncMutableProvide,
 )]
-struct RequestState(AsyncDoubleRwLockState);
+struct RequestState(PlainState);
 
 #[derive(Debug, Default, Context, ContextBuilder, GetState)]
 #[builder_ident = "StartContextBuilder"]
@@ -148,7 +148,7 @@ async fn start_handler(ctx: StartContext) -> EndContext {
 async fn end_handler(ctx: &mut EndContext) {
     let session_state = SessionState::get_from_ctx(ctx).await;
     let request_state = RequestState::get_from_ctx(ctx).await;
-    let increase_by = request_state.get_cloned::<u8>().await.unwrap_or(0);
+    let increase_by = request_state.get_cloned::<u8>().unwrap_or(0);
     let mut current_value = match session_state.get_mut::<u8>().await {
         Some(value) => value,
         None => {
@@ -183,8 +183,8 @@ async fn test() {
     let session2 = SessionId(1);
     {
         let mut ctx_builder = StartContextBuilder::new();
-        let request_state = RequestState::default();
-        request_state.provide(1u8).await;
+        let mut request_state = RequestState::default();
+        request_state.provide(1u8);
         let pre_session_state = PreSessionState::default();
         pre_session_state.provide(session1).await;
         ctx_builder
@@ -202,8 +202,8 @@ async fn test() {
 
     {
         let mut ctx_builder = StartContextBuilder::new();
-        let request_state = RequestState::default();
-        request_state.provide(2u8).await;
+        let mut request_state = RequestState::default();
+        request_state.provide(2u8);
         let pre_session_state = PreSessionState::default();
         pre_session_state.provide(session1).await;
         ctx_builder
@@ -239,8 +239,8 @@ async fn test() {
 
     {
         let mut ctx_builder = StartContextBuilder::new();
-        let request_state = RequestState::default();
-        request_state.provide(2u8).await;
+        let mut request_state = RequestState::default();
+        request_state.provide(2u8);
         let pre_session_state = PreSessionState::default();
         pre_session_state.provide(session2).await;
         ctx_builder
