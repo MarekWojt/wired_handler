@@ -10,7 +10,7 @@ use crate::{
 
 /// `State` for local usage. Doesn't do anything fancy
 #[derive(Debug, Default, State)]
-pub struct PlainState(HashMap<TypeId, Box<dyn Any>>);
+pub struct PlainState(HashMap<TypeId, Box<dyn Any + Send + Sync>>);
 
 impl StateSyncGet for PlainState {
     fn get<T: 'static + Send + Sync>(&self) -> Option<impl Deref<Target = T>> {
