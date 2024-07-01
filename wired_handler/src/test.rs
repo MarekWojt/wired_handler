@@ -178,6 +178,7 @@ async fn test() {
     let state = GlobalState::default();
     state.provide(SessionStorage::default()).await;
     let handler = Handler::new(state, handle);
+    let _ = handler.clone();
 
     let session1 = SessionId(0);
     let session2 = SessionId(1);

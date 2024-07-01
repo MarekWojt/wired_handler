@@ -3,10 +3,21 @@ use std::future::Future;
 use crate::{Context, ContextBuilder, State};
 
 /// For handling requests, holds the global `State`
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub struct Handler<CIn: Context, COut: Context, S: State + Clone, F: Future<Output = COut>> {
     state: S,
     handler: fn(CIn) -> F,
+}
+
+impl<CIn: Context, COut: Context, S: State + Clone, F: Future<Output = COut>> Clone
+    for Handler<CIn, COut, S, F>
+{
+    fn clone(&self) -> Self {
+        Self {
+            state: self.state.clone(),
+            handler: self.handler,
+        }
+    }
 }
 
 impl<CIn: Context, COut: Context, S: State + Clone, F: Future<Output = COut>>
