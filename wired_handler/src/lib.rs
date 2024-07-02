@@ -1,4 +1,3 @@
-#![feature(try_blocks)]
 mod context;
 mod handler;
 /// Exports all important traits, use as a header when using this crate
