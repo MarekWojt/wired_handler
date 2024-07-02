@@ -32,10 +32,10 @@ mod sync_immutable {
         fn get_cloned<T: 'static + Send + Sync + Clone>(&self) -> Option<T>;
     }
 
-    /// Provide and remove data (sync immutable version)
-    pub trait StateSyncProvide: State {
-        /// Provides `data` as data of type `T`
-        fn provide<T: 'static + Send + Sync>(&self, data: T);
+    /// Insert and remove data (sync immutable version)
+    pub trait StateSyncInsert: State {
+        /// Inserts `data` as data of type `T`
+        fn insert<T: 'static + Send + Sync>(&self, data: T);
         /// Removes data of type `T`
         fn remove<T: 'static + Send + Sync>(&self);
         /// Removes and returns data of type `T`
@@ -54,10 +54,10 @@ mod sync_mutable {
         fn get_mut<T: 'static + Send + Sync>(&mut self) -> Option<impl DerefMut<Target = T>>;
     }
 
-    /// Provide and remove data (sync mutable version)
-    pub trait StateSyncMutableProvide: State {
-        /// Provides `data` as data of type `T`
-        fn provide<T: 'static + Send + Sync>(&mut self, data: T);
+    /// Insert and remove data (sync mutable version)
+    pub trait StateSyncMutableInsert: State {
+        /// Inserts `data` as data of type `T`
+        fn insert<T: 'static + Send + Sync>(&mut self, data: T);
         /// Removes data of type `T`
         fn remove<T: 'static + Send + Sync>(&mut self);
         /// Removes and returns data of type `T`
@@ -94,10 +94,10 @@ mod async_immutable {
         ) -> impl std::future::Future<Output = Option<T>> + Send;
     }
 
-    /// Provide and remove data (async immutable version)
-    pub trait StateAsyncProvide: State {
-        /// Provides `data` as data of type `T`
-        fn provide<T: 'static + Send + Sync>(
+    /// Insert and remove data (async immutable version)
+    pub trait StateAsyncInsert: State {
+        /// Inserts `data` as data of type `T`
+        fn insert<T: 'static + Send + Sync>(
             &self,
             data: T,
         ) -> impl std::future::Future<Output = ()> + Send;
@@ -123,10 +123,10 @@ mod async_mutable {
         ) -> impl std::future::Future<Output = Option<impl DerefMut<Target = T>>> + Send;
     }
 
-    /// Provide and remove data (async mutable version)
-    pub trait StateAsyncMutableProvide: State {
-        /// Provides `data` as data of type `T`
-        fn provide<T: 'static + Send + Sync>(
+    /// Insert and remove data (async mutable version)
+    pub trait StateAsyncMutableInsert: State {
+        /// Inserts `data` as data of type `T`
+        fn insert<T: 'static + Send + Sync>(
             &mut self,
             data: T,
         ) -> impl std::future::Future<Output = ()> + Send;

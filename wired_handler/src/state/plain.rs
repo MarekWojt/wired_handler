@@ -5,7 +5,7 @@ use std::{
 };
 
 use crate::{
-    State, StateSyncGet, StateSyncGetCloned, StateSyncMutableGetMut, StateSyncMutableProvide,
+    State, StateSyncGet, StateSyncGetCloned, StateSyncMutableGetMut, StateSyncMutableInsert,
 };
 
 /// `State` for local usage. Doesn't do anything fancy
@@ -37,8 +37,8 @@ impl StateSyncGetCloned for PlainState {
     }
 }
 
-impl StateSyncMutableProvide for PlainState {
-    fn provide<T: 'static + Send + Sync>(&mut self, data: T) {
+impl StateSyncMutableInsert for PlainState {
+    fn insert<T: 'static + Send + Sync>(&mut self, data: T) {
         if let Some(mut current_data) = self.get_mut::<T>() {
             *current_data = data;
             return;

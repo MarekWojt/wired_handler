@@ -3,8 +3,8 @@ use std::collections::HashMap;
 
 use crate::{
     plain::PlainState, Context, ContextBuilder, GetState, Handler, State, StateAsyncGet,
-    StateAsyncGetCloned, StateAsyncGetMut, StateAsyncProvide, StateSyncGet, StateSyncGetCloned,
-    StateSyncMutableGetMut, StateSyncMutableProvide,
+    StateAsyncGetCloned, StateAsyncGetMut, StateAsyncInsert, StateSyncGet, StateSyncGetCloned,
+    StateSyncMutableGetMut, StateSyncMutableInsert,
 };
 use tokio::runtime::Runtime;
 
@@ -34,7 +34,7 @@ impl SessionStorage {
     StateAsyncGet,
     StateAsyncGetCloned,
     StateAsyncGetMut,
-    StateAsyncProvide,
+    StateAsyncInsert,
 )]
 struct GlobalState(AsyncDoubleRwLockState);
 
@@ -46,7 +46,7 @@ struct GlobalState(AsyncDoubleRwLockState);
     StateAsyncGet,
     StateAsyncGetCloned,
     StateAsyncGetMut,
-    StateAsyncProvide,
+    StateAsyncInsert,
 )]
 struct SessionState(AsyncDoubleRwLockState);
 
@@ -58,7 +58,7 @@ struct SessionState(AsyncDoubleRwLockState);
     StateAsyncGet,
     StateAsyncGetCloned,
     StateAsyncGetMut,
-    StateAsyncProvide,
+    StateAsyncInsert,
 )]
 struct PreSessionState(AsyncDoubleRwLockState);
 
@@ -69,7 +69,7 @@ struct PreSessionState(AsyncDoubleRwLockState);
     StateSyncGet,
     StateSyncGetCloned,
     StateSyncMutableGetMut,
-    StateSyncMutableProvide,
+    StateSyncMutableInsert,
 )]
 struct RequestState(PlainState);
 
@@ -152,7 +152,7 @@ async fn end_handler(ctx: &mut EndContext) {
     let mut current_value = match session_state.get_mut::<u8>().await {
         Some(value) => value,
         None => {
-            session_state.provide(0u8).await;
+            session_state.insert(0u8).await;
             session_state.get_mut::<u8>().await.unwrap()
         }
     };
@@ -176,7 +176,7 @@ fn run_test() {
 
 async fn test() {
     let state = GlobalState::default();
-    state.provide(SessionStorage::default()).await;
+    state.insert(SessionStorage::default()).await;
     let handler = Handler::new(state, handle);
     let _ = handler.clone();
 
@@ -185,9 +185,9 @@ async fn test() {
     {
         let mut ctx_builder = StartContextBuilder::new();
         let mut request_state = RequestState::default();
-        request_state.provide(1u8);
+        request_state.insert(1u8);
         let pre_session_state = PreSessionState::default();
-        pre_session_state.provide(session1).await;
+        pre_session_state.insert(session1).await;
         ctx_builder
             .request_state(request_state)
             .pre_session_state(pre_session_state);
@@ -204,9 +204,9 @@ async fn test() {
     {
         let mut ctx_builder = StartContextBuilder::new();
         let mut request_state = RequestState::default();
-        request_state.provide(2u8);
+        request_state.insert(2u8);
         let pre_session_state = PreSessionState::default();
-        pre_session_state.provide(session1).await;
+        pre_session_state.insert(session1).await;
         ctx_builder
             .request_state(request_state)
             .pre_session_state(pre_session_state);
@@ -224,7 +224,7 @@ async fn test() {
         let mut ctx_builder = StartContextBuilder::new();
         let request_state = RequestState::default();
         let pre_session_state = PreSessionState::default();
-        pre_session_state.provide(session2).await;
+        pre_session_state.insert(session2).await;
         ctx_builder
             .request_state(request_state)
             .pre_session_state(pre_session_state);
@@ -241,9 +241,9 @@ async fn test() {
     {
         let mut ctx_builder = StartContextBuilder::new();
         let mut request_state = RequestState::default();
-        request_state.provide(2u8);
+        request_state.insert(2u8);
         let pre_session_state = PreSessionState::default();
-        pre_session_state.provide(session2).await;
+        pre_session_state.insert(session2).await;
         ctx_builder
             .request_state(request_state)
             .pre_session_state(pre_session_state);

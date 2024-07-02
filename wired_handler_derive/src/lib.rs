@@ -61,14 +61,14 @@ pub fn derive_state_sync_get_cloned(token_stream: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(StateSyncProvide)]
-pub fn derive_state_sync_provide(token_stream: TokenStream) -> TokenStream {
+#[proc_macro_derive(StateSyncInsert)]
+pub fn derive_state_sync_insert(token_stream: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(token_stream as DeriveInput);
     let ident = derive_input.ident;
     quote! {
-        impl StateSyncProvide for #ident {
-            fn provide<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self, data: T) {
-                self.0.provide(data)
+        impl StateSyncInsert for #ident {
+            fn insert<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self, data: T) {
+                self.0.insert(data)
             }
             fn remove<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self) {
                 self.0.remove::<T>()
@@ -99,14 +99,14 @@ pub fn derive_state_sync_mutable_get_mut(token_stream: TokenStream) -> TokenStre
     .into()
 }
 
-#[proc_macro_derive(StateSyncMutableProvide)]
-pub fn derive_state_sync_mutable_provide(token_stream: TokenStream) -> TokenStream {
+#[proc_macro_derive(StateSyncMutableInsert)]
+pub fn derive_state_sync_mutable_insert(token_stream: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(token_stream as DeriveInput);
     let ident = derive_input.ident;
     quote! {
-        impl StateSyncMutableProvide for #ident {
-            fn provide<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self, data: T) {
-                self.0.provide(data)
+        impl StateSyncMutableInsert for #ident {
+            fn insert<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self, data: T) {
+                self.0.insert(data)
             }
             fn remove<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self) {
                 self.0.remove::<T>()
@@ -165,14 +165,14 @@ pub fn derive_state_async_get_cloned(token_stream: TokenStream) -> TokenStream {
     .into()
 }
 
-#[proc_macro_derive(StateAsyncProvide)]
-pub fn derive_state_async_provide(token_stream: TokenStream) -> TokenStream {
+#[proc_macro_derive(StateAsyncInsert)]
+pub fn derive_state_async_insert(token_stream: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(token_stream as DeriveInput);
     let ident = derive_input.ident;
     quote! {
-        impl StateAsyncProvide for #ident {
-            async fn provide<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self, data: T) {
-                self.0.provide(data).await
+        impl StateAsyncInsert for #ident {
+            async fn insert<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self, data: T) {
+                self.0.insert(data).await
             }
             async fn remove<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self) {
                 self.0.remove::<T>().await
@@ -203,14 +203,14 @@ pub fn derive_state_async_mutable_get_mut(token_stream: TokenStream) -> TokenStr
     .into()
 }
 
-#[proc_macro_derive(StateAsyncMutableProvide)]
-pub fn derive_state_async_mutable_provide(token_stream: TokenStream) -> TokenStream {
+#[proc_macro_derive(StateAsyncMutableInsert)]
+pub fn derive_state_async_mutable_insert(token_stream: TokenStream) -> TokenStream {
     let derive_input = parse_macro_input!(token_stream as DeriveInput);
     let ident = derive_input.ident;
     quote! {
-        impl StateAsyncMutableProvide for #ident {
-            async fn provide<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self, data: T) {
-                self.0.provide(data).await
+        impl StateAsyncMutableInsert for #ident {
+            async fn insert<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self, data: T) {
+                self.0.insert(data).await
             }
             async fn remove<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self) {
                 self.0.remove::<T>().await

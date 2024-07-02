@@ -1,4 +1,4 @@
-use crate::{State, StateAsyncGet, StateAsyncGetCloned, StateAsyncGetMut, StateAsyncProvide};
+use crate::{State, StateAsyncGet, StateAsyncGetCloned, StateAsyncGetMut, StateAsyncInsert};
 
 use std::{
     any::{Any, TypeId},
@@ -47,8 +47,8 @@ impl StateAsyncGetCloned for AsyncDoubleRwLockState {
     }
 }
 
-impl StateAsyncProvide for AsyncDoubleRwLockState {
-    async fn provide<T: 'static + Send + Sync>(&self, data: T) {
+impl StateAsyncInsert for AsyncDoubleRwLockState {
+    async fn insert<T: 'static + Send + Sync>(&self, data: T) {
         if let Some(mut current_data) = self.get_mut::<T>().await {
             *current_data = data;
             return;
