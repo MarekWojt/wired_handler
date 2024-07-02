@@ -2,7 +2,7 @@ use std::ops::{Deref, DerefMut};
 
 use crate::state::State;
 
-/// Marks an objekt as context
+/// Marks an object as context
 pub trait Context {}
 
 /// For extracting the `State` `Self` from a `Context`
