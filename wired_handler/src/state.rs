@@ -41,6 +41,28 @@ mod sync_immutable {
         /// Removes and returns data of type `T`
         fn remove_get<T: 'static + Send + Sync + Clone>(&self) -> Option<T>;
     }
+
+    /// Get data mutably or insert (sync immutable version)
+    pub trait StateSyncGetMutOrInsert: State {
+        /// Returns data of type `T` mutably, inserts if not found
+        fn get_mut_or_insert_with<T: 'static + Send + Sync>(
+            &self,
+            get_data: impl FnOnce() -> T,
+        ) -> impl DerefMut<Target = T>;
+        /// Returns data of type `T` mutably, inserts if not found
+        fn get_mut_or_insert<T: 'static + Send + Sync>(
+            &self,
+            data: T,
+        ) -> impl DerefMut<Target = T> {
+            self.get_mut_or_insert_with(move || data)
+        }
+        /// Returns data of type `T` mutably, inserts default if not found
+        fn get_mut_or_insert_default<T: 'static + Send + Sync + Default>(
+            &self,
+        ) -> impl DerefMut<Target = T> {
+            self.get_mut_or_insert_with(|| T::default())
+        }
+    }
 }
 
 mod sync_mutable {
@@ -62,6 +84,28 @@ mod sync_mutable {
         fn remove<T: 'static + Send + Sync>(&mut self);
         /// Removes and returns data of type `T`
         fn remove_get<T: 'static + Send + Sync + Clone>(&mut self) -> Option<T>;
+    }
+
+    /// Get data mutably or insert (sync mutable version)
+    pub trait StateSyncMutableGetMutOrInsert: State {
+        /// Returns data of type `T` mutably, inserts if not found
+        fn get_mut_or_insert_with<T: 'static + Send + Sync>(
+            &mut self,
+            get_data: impl FnOnce() -> T,
+        ) -> impl DerefMut<Target = T>;
+        /// Returns data of type `T` mutably, inserts if not found
+        fn get_mut_or_insert<T: 'static + Send + Sync>(
+            &mut self,
+            data: T,
+        ) -> impl DerefMut<Target = T> {
+            self.get_mut_or_insert_with(move || data)
+        }
+        /// Returns data of type `T` mutably, inserts default if not found
+        fn get_mut_or_insert_default<T: 'static + Send + Sync + Default>(
+            &mut self,
+        ) -> impl DerefMut<Target = T> {
+            self.get_mut_or_insert_with(|| T::default())
+        }
     }
 }
 
@@ -108,6 +152,28 @@ mod async_immutable {
             &self,
         ) -> impl std::future::Future<Output = Option<T>> + Send;
     }
+
+    /// Get data mutably or insert (async immutable version)
+    pub trait StateAsyncGetMutOrInsert: State {
+        /// Returns data of type `T` mutably, inserts if not found
+        fn get_mut_or_insert_with<T: 'static + Send + Sync>(
+            &self,
+            get_data: impl FnOnce() -> T + std::marker::Send,
+        ) -> impl std::future::Future<Output = impl DerefMut<Target = T>> + Send;
+        /// Returns data of type `T` mutably, inserts if not found
+        fn get_mut_or_insert<T: 'static + Send + Sync>(
+            &self,
+            data: T,
+        ) -> impl std::future::Future<Output = impl DerefMut<Target = T>> + Send {
+            self.get_mut_or_insert_with(move || data)
+        }
+        /// Returns data of type `T` mutably, inserts default if not found
+        fn get_mut_or_insert_default<T: 'static + Send + Sync + Default>(
+            &self,
+        ) -> impl std::future::Future<Output = impl DerefMut<Target = T>> + Send {
+            self.get_mut_or_insert_with(|| T::default())
+        }
+    }
 }
 
 mod async_mutable {
@@ -138,5 +204,27 @@ mod async_mutable {
         fn remove_get<T: 'static + Send + Sync + Clone>(
             &mut self,
         ) -> impl std::future::Future<Output = Option<T>> + Send;
+    }
+
+    /// Get data mutably or insert (async mutable version)
+    pub trait StateAsyncMutableGetMutOrInsert: State {
+        /// Returns data of type `T` mutably, inserts if not found
+        fn get_mut_or_insert_with<T: 'static + Send + Sync>(
+            &mut self,
+            get_data: impl FnOnce() -> T + std::marker::Send,
+        ) -> impl std::future::Future<Output = impl DerefMut<Target = T>> + Send;
+        /// Returns data of type `T` mutably, inserts if not found
+        fn get_mut_or_insert<T: 'static + Send + Sync>(
+            &mut self,
+            data: T,
+        ) -> impl std::future::Future<Output = impl DerefMut<Target = T>> + Send {
+            self.get_mut_or_insert_with(move || data)
+        }
+        /// Returns data of type `T` mutably, inserts default if not found
+        fn get_mut_or_insert_default<T: 'static + Send + Sync + Default>(
+            &mut self,
+        ) -> impl std::future::Future<Output = impl DerefMut<Target = T>> + Send {
+            self.get_mut_or_insert_with(|| T::default())
+        }
     }
 }

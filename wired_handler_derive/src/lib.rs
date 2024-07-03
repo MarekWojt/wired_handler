@@ -81,6 +81,37 @@ pub fn derive_state_sync_insert(token_stream: TokenStream) -> TokenStream {
     .into()
 }
 
+#[proc_macro_derive(StateSyncGetMutOrInsert)]
+pub fn derive_state_sync_get_mut_or_insert(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateSyncGetMutOrInsert for #ident {
+            /// Returns data of type `T` mutably, inserts if not found
+            fn get_mut_or_insert_with<T: 'static + ::core::marker::Send + ::core::marker::Sync>(
+                &self,
+                get_data: impl ::std::ops::FnOnce() -> T,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert_with(get_data)
+            }
+            /// Returns data of type `T` mutably, inserts if not found
+            fn get_mut_or_insert<T: 'static + ::core::marker::Send + ::core::marker::Sync>(
+                &self,
+                data: T,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert(data)
+            }
+            /// Returns data of type `T` mutably, inserts default if not found
+            fn get_mut_or_insert_default<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::default::Default>(
+                &self,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert_default::<T>()
+            }
+        }
+    }
+    .into()
+}
+
 // ####################
 // ### SYNC MUTABLE ###
 // ####################
@@ -113,6 +144,37 @@ pub fn derive_state_sync_mutable_insert(token_stream: TokenStream) -> TokenStrea
             }
             fn remove_get<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&mut self) -> ::std::option::Option<T> {
                 self.0.remove_get::<T>()
+            }
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(StateSyncMutableGetMutOrInsert)]
+pub fn derive_state_sync_mutable_get_mut_or_insert(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateSyncMutableGetMutOrInsert for #ident {
+            /// Returns data of type `T` mutably, inserts if not found
+            fn get_mut_or_insert_with<T: 'static + ::core::marker::Send + ::core::marker::Sync>(
+                &mut self,
+                get_data: impl ::std::ops::FnOnce() -> T,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert_with(get_data)
+            }
+            /// Returns data of type `T` mutably, inserts if not found
+            fn get_mut_or_insert<T: 'static + ::core::marker::Send + ::core::marker::Sync>(
+                &mut self,
+                data: T,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert(data)
+            }
+            /// Returns data of type `T` mutably, inserts default if not found
+            fn get_mut_or_insert_default<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::default::Default>(
+                &mut self,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert_default::<T>()
             }
         }
     }
@@ -185,6 +247,37 @@ pub fn derive_state_async_insert(token_stream: TokenStream) -> TokenStream {
     .into()
 }
 
+#[proc_macro_derive(StateAsyncGetMutOrInsert)]
+pub fn derive_state_async_get_mut_or_insert(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateAsyncGetMutOrInsert for #ident {
+            /// Returns data of type `T` mutably, inserts if not found
+            async fn get_mut_or_insert_with<T: 'static + ::core::marker::Send + ::core::marker::Sync>(
+                &self,
+                get_data: impl ::std::ops::FnOnce() -> T + ::core::marker::Send,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert_with(get_data).await
+            }
+            /// Returns data of type `T` mutably, inserts if not found
+            async fn get_mut_or_insert<T: 'static + ::core::marker::Send + ::core::marker::Sync>(
+                &self,
+                data: T,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert(data).await
+            }
+            /// Returns data of type `T` mutably, inserts default if not found
+            async fn get_mut_or_insert_default<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::default::Default>(
+                &self,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert_default::<T>().await
+            }
+        }
+    }
+    .into()
+}
+
 // #####################
 // ### ASYNC MUTABLE ###
 // #####################
@@ -217,6 +310,37 @@ pub fn derive_state_async_mutable_insert(token_stream: TokenStream) -> TokenStre
             }
             async fn remove_get<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&mut self) -> ::std::option::Option<T> {
                 self.0.remove_get::<T>().await
+            }
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(StateAsyncMutableGetMutOrInsert)]
+pub fn derive_state_async_mutable_get_mut_or_insert(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateAsyncMutableGetMutOrInsert for #ident {
+            /// Returns data of type `T` mutably, inserts if not found
+            async fn get_mut_or_insert_with<T: 'static + ::core::marker::Send + ::core::marker::Sync>(
+                &mut self,
+                get_data: impl ::std::ops::FnOnce() -> T + ::core::marker::Send,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert_with(get_data).await
+            }
+            /// Returns data of type `T` mutably, inserts if not found
+            async fn get_mut_or_insert<T: 'static + ::core::marker::Send + ::core::marker::Sync>(
+                &mut self,
+                data: T,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert(data).await
+            }
+            /// Returns data of type `T` mutably, inserts default if not found
+            async fn get_mut_or_insert_default<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::default::Default>(
+                &mut self,
+            ) -> impl ::std::ops::DerefMut<Target = T> {
+                self.0.get_mut_or_insert_default::<T>().await
             }
         }
     }

@@ -5,7 +5,8 @@ use std::{
 };
 
 use crate::{
-    State, StateSyncGet, StateSyncGetCloned, StateSyncMutableGetMut, StateSyncMutableInsert,
+    State, StateSyncGet, StateSyncGetCloned, StateSyncMutableGetMut,
+    StateSyncMutableGetMutOrInsert, StateSyncMutableInsert,
 };
 
 /// `State` for local usage. Doesn't do anything fancy
@@ -54,5 +55,19 @@ impl StateSyncMutableInsert for PlainState {
 
     fn remove<T: 'static + Send + Sync>(&mut self) {
         self.0.remove(&TypeId::of::<T>());
+    }
+}
+
+impl StateSyncMutableGetMutOrInsert for PlainState {
+    fn get_mut_or_insert_with<T: 'static + Send + Sync>(
+        &mut self,
+        get_data: impl FnOnce() -> T,
+    ) -> impl DerefMut<Target = T> {
+        if self.get::<T>().is_some() {
+            self.get_mut().unwrap() // it's there, we just checked it
+        } else {
+            self.insert(get_data());
+            self.get_mut().unwrap() // it's there, we just inserted it
+        }
     }
 }

@@ -3,8 +3,9 @@ use std::collections::HashMap;
 
 use crate::{
     plain::PlainState, Context, ContextBuilder, GetState, Handler, State, StateAsyncGet,
-    StateAsyncGetCloned, StateAsyncGetMut, StateAsyncInsert, StateSyncGet, StateSyncGetCloned,
-    StateSyncMutableGetMut, StateSyncMutableInsert,
+    StateAsyncGetCloned, StateAsyncGetMut, StateAsyncGetMutOrInsert, StateAsyncInsert,
+    StateSyncGet, StateSyncGetCloned, StateSyncMutableGetMut, StateSyncMutableGetMutOrInsert,
+    StateSyncMutableInsert,
 };
 use tokio::runtime::Runtime;
 
@@ -35,6 +36,7 @@ impl SessionStorage {
     StateAsyncGetCloned,
     StateAsyncGetMut,
     StateAsyncInsert,
+    StateAsyncGetMutOrInsert,
 )]
 struct GlobalState(AsyncDoubleRwLockState);
 
@@ -47,6 +49,7 @@ struct GlobalState(AsyncDoubleRwLockState);
     StateAsyncGetCloned,
     StateAsyncGetMut,
     StateAsyncInsert,
+    StateAsyncGetMutOrInsert,
 )]
 struct SessionState(AsyncDoubleRwLockState);
 
@@ -59,6 +62,7 @@ struct SessionState(AsyncDoubleRwLockState);
     StateAsyncGetCloned,
     StateAsyncGetMut,
     StateAsyncInsert,
+    StateAsyncGetMutOrInsert,
 )]
 struct PreSessionState(AsyncDoubleRwLockState);
 
@@ -70,6 +74,7 @@ struct PreSessionState(AsyncDoubleRwLockState);
     StateSyncGetCloned,
     StateSyncMutableGetMut,
     StateSyncMutableInsert,
+    StateSyncMutableGetMutOrInsert,
 )]
 struct RequestState(PlainState);
 
@@ -98,6 +103,7 @@ impl StartContext {
             return found_session_state;
         }
         let session_state = SessionState::default();
+        session_state.insert(session_id).await;
         if let Some(mut session_storage) = global_state.get_mut::<SessionStorage>().await {
             session_storage.add(session_id, session_state.clone());
         }
@@ -149,13 +155,7 @@ async fn end_handler(ctx: &mut EndContext) {
     let session_state = SessionState::get_from_ctx(ctx).await;
     let request_state = RequestState::get_from_ctx(ctx).await;
     let increase_by = request_state.get_cloned::<u8>().unwrap_or(0);
-    let mut current_value = match session_state.get_mut::<u8>().await {
-        Some(value) => value,
-        None => {
-            session_state.insert(0u8).await;
-            session_state.get_mut::<u8>().await.unwrap()
-        }
-    };
+    let mut current_value = session_state.get_mut_or_insert_default::<u8>().await;
     *current_value += increase_by;
 }
 
