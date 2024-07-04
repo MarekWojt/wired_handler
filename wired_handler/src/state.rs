@@ -169,7 +169,7 @@ mod async_immutable {
         fn remove<T: 'static + Send + Sync>(&self) -> impl std::future::Future<Output = ()> + Send;
     }
 
-    /// Remove data and return a clone (sync immutable version)
+    /// Remove data and return a clone (async immutable version)
     pub trait StateAsyncRemoveGetCloned: State {
         /// Removes and returns data of type `T`, cloned if necessary
         fn remove_get_cloned<T: 'static + Send + Sync + Clone>(
@@ -177,7 +177,7 @@ mod async_immutable {
         ) -> impl std::future::Future<Output = Option<T>> + Send;
     }
 
-    /// Remove data and return it (sync immutable version)
+    /// Remove data and return it (async immutable version)
     pub trait StateAsyncRemoveGet: State {
         /// Removes and returns data of type `T`
         fn remove_get<T: 'static + Send + Sync>(
