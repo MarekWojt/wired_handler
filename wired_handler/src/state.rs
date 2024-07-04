@@ -38,8 +38,18 @@ mod sync_immutable {
         fn insert<T: 'static + Send + Sync>(&self, data: T);
         /// Removes data of type `T`
         fn remove<T: 'static + Send + Sync>(&self);
+    }
+
+    /// Remove data and return a clone (sync immutable version)
+    pub trait StateSyncRemoveGetCloned: State {
+        /// Removes and returns data of type `T`, cloned if necessary
+        fn remove_get_cloned<T: 'static + Send + Sync + Clone>(&self) -> Option<T>;
+    }
+
+    /// Remove data and return it (sync immutable version)
+    pub trait StateSyncRemoveGet: State {
         /// Removes and returns data of type `T`
-        fn remove_get<T: 'static + Send + Sync + Clone>(&self) -> Option<T>;
+        fn remove_get<T: 'static + Send + Sync>(&self) -> Option<T>;
     }
 
     /// Get data mutably or insert (sync immutable version)
@@ -82,8 +92,18 @@ mod sync_mutable {
         fn insert<T: 'static + Send + Sync>(&mut self, data: T);
         /// Removes data of type `T`
         fn remove<T: 'static + Send + Sync>(&mut self);
+    }
+
+    /// Remove data and return a clone (sync mutable version)
+    pub trait StateSyncMutableRemoveGetCloned: State {
+        /// Removes and returns data of type `T`, cloned if necessary
+        fn remove_get_cloned<T: 'static + Send + Sync + Clone>(&mut self) -> Option<T>;
+    }
+
+    /// Remove data and return it (sync mutable version)
+    pub trait StateSyncMutableRemoveGet: State {
         /// Removes and returns data of type `T`
-        fn remove_get<T: 'static + Send + Sync + Clone>(&mut self) -> Option<T>;
+        fn remove_get<T: 'static + Send + Sync>(&mut self) -> Option<T>;
     }
 
     /// Get data mutably or insert (sync mutable version)
@@ -147,8 +167,20 @@ mod async_immutable {
         ) -> impl std::future::Future<Output = ()> + Send;
         /// Removes data of type `T`
         fn remove<T: 'static + Send + Sync>(&self) -> impl std::future::Future<Output = ()> + Send;
+    }
+
+    /// Remove data and return a clone (sync immutable version)
+    pub trait StateAsyncRemoveGetCloned: State {
+        /// Removes and returns data of type `T`, cloned if necessary
+        fn remove_get_cloned<T: 'static + Send + Sync + Clone>(
+            &self,
+        ) -> impl std::future::Future<Output = Option<T>> + Send;
+    }
+
+    /// Remove data and return it (sync immutable version)
+    pub trait StateAsyncRemoveGet: State {
         /// Removes and returns data of type `T`
-        fn remove_get<T: 'static + Send + Sync + Clone>(
+        fn remove_get<T: 'static + Send + Sync>(
             &self,
         ) -> impl std::future::Future<Output = Option<T>> + Send;
     }
@@ -200,8 +232,20 @@ mod async_mutable {
         fn remove<T: 'static + Send + Sync + Clone>(
             &mut self,
         ) -> impl std::future::Future<Output = ()> + Send;
+    }
+
+    /// Remove data and return a clone (async mutable version)
+    pub trait StateAsyncMutableRemoveGetCloned: State {
+        /// Removes and returns data of type `T`, cloned if necessary
+        fn remove_get_cloned<T: 'static + Send + Sync + Clone>(
+            &mut self,
+        ) -> impl std::future::Future<Output = Option<T>> + Send;
+    }
+
+    /// Remove data and return it (async mutable version)
+    pub trait StateAsyncMutableRemoveGet: State {
         /// Removes and returns data of type `T`
-        fn remove_get<T: 'static + Send + Sync + Clone>(
+        fn remove_get<T: 'static + Send + Sync>(
             &mut self,
         ) -> impl std::future::Future<Output = Option<T>> + Send;
     }

@@ -73,7 +73,32 @@ pub fn derive_state_sync_insert(token_stream: TokenStream) -> TokenStream {
             fn remove<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self) {
                 self.0.remove::<T>()
             }
-            fn remove_get<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&self) -> ::std::option::Option<T> {
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(StateSyncRemoveGetCloned)]
+pub fn derive_state_sync_remove_get_cloned(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateSyncRemoveGetCloned for #ident {
+            fn remove_get_cloned<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&self) -> ::std::option::Option<T> {
+                self.0.remove_get_cloned::<T>()
+            }
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(StateSyncRemoveGet)]
+pub fn derive_state_sync_remove_get(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateSyncRemoveGet for #ident {
+            fn remove_get<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self) -> ::std::option::Option<T> {
                 self.0.remove_get::<T>()
             }
         }
@@ -142,7 +167,32 @@ pub fn derive_state_sync_mutable_insert(token_stream: TokenStream) -> TokenStrea
             fn remove<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self) {
                 self.0.remove::<T>()
             }
-            fn remove_get<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&mut self) -> ::std::option::Option<T> {
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(StateSyncMutableRemoveGetCloned)]
+pub fn derive_state_sync_mutable_remove_get_cloned(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateSyncMutableRemoveGetCloned for #ident {
+            fn remove_get_cloned<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&mut self) -> ::std::option::Option<T> {
+                self.0.remove_get_cloned::<T>()
+            }
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(StateSyncMutableRemoveGet)]
+pub fn derive_state_sync_mutable_remove_get(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateSyncMutableRemoveGet for #ident {
+            fn remove_get<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self) -> ::std::option::Option<T> {
                 self.0.remove_get::<T>()
             }
         }
@@ -239,7 +289,32 @@ pub fn derive_state_async_insert(token_stream: TokenStream) -> TokenStream {
             async fn remove<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self) {
                 self.0.remove::<T>().await
             }
-            async fn remove_get<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&self) -> ::std::option::Option<T> {
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(StateAsyncRemoveGetCloned)]
+pub fn derive_state_async_remove_get_cloned(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateAsyncRemoveGetCloned for #ident {
+            async fn remove_get_cloned<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&self) -> ::std::option::Option<T> {
+                self.0.remove_get_cloned::<T>().await
+            }
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(StateAsyncRemoveGet)]
+pub fn derive_state_async_remove_get(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateAsyncRemoveGet for #ident {
+            async fn remove_get<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self) -> ::std::option::Option<T> {
                 self.0.remove_get::<T>().await
             }
         }
@@ -308,7 +383,32 @@ pub fn derive_state_async_mutable_insert(token_stream: TokenStream) -> TokenStre
             async fn remove<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self) {
                 self.0.remove::<T>().await
             }
-            async fn remove_get<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&mut self) -> ::std::option::Option<T> {
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(StateAsyncMutableRemoveGetCloned)]
+pub fn derive_state_async_mutable_remove_get_cloned(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateAsyncMutableRemoveGetCloned for #ident {
+            async fn remove_get_cloned<T: 'static + ::core::marker::Send + ::core::marker::Sync + ::std::clone::Clone>(&mut self) -> ::std::option::Option<T> {
+                self.0.remove_get_cloned::<T>().await
+            }
+        }
+    }
+    .into()
+}
+
+#[proc_macro_derive(StateAsyncMutableRemoveGet)]
+pub fn derive_state_async_mutable_remove_get(token_stream: TokenStream) -> TokenStream {
+    let derive_input = parse_macro_input!(token_stream as DeriveInput);
+    let ident = derive_input.ident;
+    quote! {
+        impl StateAsyncMutableRemoveGet for #ident {
+            async fn remove_get<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&mut self) -> ::std::option::Option<T> {
                 self.0.remove_get::<T>().await
             }
         }

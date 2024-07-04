@@ -1,6 +1,6 @@
 use crate::{
     State, StateAsyncGet, StateAsyncGetCloned, StateAsyncGetMut, StateAsyncGetMutOrInsert,
-    StateAsyncInsert,
+    StateAsyncInsert, StateAsyncRemoveGetCloned,
 };
 
 use std::{
@@ -50,11 +50,7 @@ impl StateAsyncGetMut for AsyncDoubleRwLockState {
 
 impl StateAsyncGetCloned for AsyncDoubleRwLockState {
     async fn get_cloned<T: 'static + Send + Sync + Clone>(&self) -> Option<T> {
-        let data = { self.0.read().await.get(&TypeId::of::<T>())?.clone() };
-
-        let guarded_data = data.read().await;
-
-        guarded_data.downcast_ref().cloned()
+        self.get::<T>().await.map(|data| data.clone())
     }
 }
 
@@ -73,8 +69,10 @@ impl StateAsyncInsert for AsyncDoubleRwLockState {
     async fn remove<T: 'static + Send + Sync>(&self) {
         self.0.write().await.remove(&TypeId::of::<T>());
     }
+}
 
-    async fn remove_get<T: 'static + Send + Sync + Clone>(&self) -> Option<T> {
+impl StateAsyncRemoveGetCloned for AsyncDoubleRwLockState {
+    async fn remove_get_cloned<T: 'static + Send + Sync + Clone>(&self) -> Option<T> {
         let data_arc = self.0.write().await.remove(&TypeId::of::<T>())?;
 
         /*
