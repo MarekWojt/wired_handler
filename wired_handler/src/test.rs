@@ -169,7 +169,7 @@ async fn end_handler(ctx: &mut EndContext) {
         *current_value += increase_by;
     }
     let mut request_state_mut = RequestState::get_mut_from_ctx(ctx);
-    if let Some(mut data) = request_state_mut.get_mut::<u8>() {
+    if let Some(data) = request_state_mut.get_mut::<u8>() {
         *data *= 2;
     };
 }
