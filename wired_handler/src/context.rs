@@ -8,12 +8,9 @@ pub trait Context {}
 /// For extracting the `State` `Self` from a `Context`
 pub trait GetState<C: Context>: State {
     /// Immutably gets the `State` `Self` from the `Context` `C`
-    fn get_from_ctx(ctx: &C)
-        -> impl std::future::Future<Output = impl Deref<Target = Self>> + Send;
+    fn get_from_ctx(ctx: &C) -> impl Deref<Target = Self>;
     /// Mutably gets the `State` `Self` from the `Context` `C`
-    fn get_mut_from_ctx(
-        ctx: &mut C,
-    ) -> impl std::future::Future<Output = impl DerefMut<Target = Self>> + Send;
+    fn get_mut_from_ctx(ctx: &mut C) -> impl DerefMut<Target = Self>;
 }
 
 /// For building a context, given all fields except for the global state `S`

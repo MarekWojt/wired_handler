@@ -96,7 +96,7 @@ struct StartContext {
 
 impl StartContext {
     async fn get_or_create_session_state(&self, session_id: SessionId) -> SessionState {
-        let global_state = GlobalState::get_from_ctx(self).await.clone();
+        let global_state = GlobalState::get_from_ctx(self).clone();
         let session_state = {
             global_state
                 .get::<SessionStorage>()
@@ -137,7 +137,7 @@ impl From<StartContext> for EndContextBuilder {
 
 async fn start_handler(ctx: StartContext) -> EndContext {
     let session_state = {
-        let pre_session_state = PreSessionState::get_from_ctx(&ctx).await;
+        let pre_session_state = PreSessionState::get_from_ctx(&ctx);
 
         let session_id = pre_session_state
             .get_cloned()
@@ -152,7 +152,7 @@ async fn start_handler(ctx: StartContext) -> EndContext {
         *times_used += 1u16;
     }
 
-    let global_state = GlobalState::get_from_ctx(&ctx).await.clone();
+    let global_state = GlobalState::get_from_ctx(&ctx).clone();
 
     let mut builder = EndContextBuilder::from(ctx);
     builder.session_state(session_state);
@@ -162,13 +162,13 @@ async fn start_handler(ctx: StartContext) -> EndContext {
 
 async fn end_handler(ctx: &mut EndContext) {
     {
-        let session_state = SessionState::get_from_ctx(ctx).await;
-        let request_state = RequestState::get_from_ctx(ctx).await;
+        let session_state = SessionState::get_from_ctx(ctx);
+        let request_state = RequestState::get_from_ctx(ctx);
         let increase_by = request_state.get_cloned::<u8>().unwrap_or(0);
         let mut current_value = session_state.get_mut_or_insert_default::<u8>().await;
         *current_value += increase_by;
     }
-    let mut request_state_mut = RequestState::get_mut_from_ctx(ctx).await;
+    let mut request_state_mut = RequestState::get_mut_from_ctx(ctx);
     if let Some(mut data) = request_state_mut.get_mut::<u8>() {
         *data *= 2;
     };
@@ -209,7 +209,7 @@ async fn test() {
 
         let mut end_ctx = handler.handle(ctx_builder).await.unwrap();
         {
-            let session_state = SessionState::get_from_ctx(&end_ctx).await;
+            let session_state = SessionState::get_from_ctx(&end_ctx);
             let current_value = session_state.get_cloned::<u8>().await;
             assert_eq!(current_value, Some(1u8));
 
@@ -217,9 +217,7 @@ async fn test() {
             assert_eq!(times_used, Some(1u16));
         }
 
-        let request_value = RequestState::get_mut_from_ctx(&mut end_ctx)
-            .await
-            .remove_get();
+        let request_value = RequestState::get_mut_from_ctx(&mut end_ctx).remove_get();
         assert_eq!(request_value, Some(2u8));
     }
 
@@ -235,7 +233,7 @@ async fn test() {
 
         let mut end_ctx = handler.handle(ctx_builder).await.unwrap();
         {
-            let session_state = SessionState::get_from_ctx(&end_ctx).await;
+            let session_state = SessionState::get_from_ctx(&end_ctx);
             let current_value = session_state.get_cloned::<u8>().await;
             assert_eq!(current_value, Some(3u8));
 
@@ -243,9 +241,7 @@ async fn test() {
             assert_eq!(times_used, Some(2u16));
         }
 
-        let request_value = RequestState::get_mut_from_ctx(&mut end_ctx)
-            .await
-            .remove_get();
+        let request_value = RequestState::get_mut_from_ctx(&mut end_ctx).remove_get();
         assert_eq!(request_value, Some(4u8));
     }
 
@@ -260,7 +256,7 @@ async fn test() {
 
         let mut end_ctx = handler.handle(ctx_builder).await.unwrap();
         {
-            let session_state = SessionState::get_from_ctx(&end_ctx).await;
+            let session_state = SessionState::get_from_ctx(&end_ctx);
             let current_value = session_state.get_cloned::<u8>().await;
             assert_eq!(current_value, Some(0u8));
 
@@ -268,9 +264,7 @@ async fn test() {
             assert_eq!(times_used, Some(1u16));
         }
 
-        let request_value: Option<u8> = RequestState::get_mut_from_ctx(&mut end_ctx)
-            .await
-            .remove_get();
+        let request_value: Option<u8> = RequestState::get_mut_from_ctx(&mut end_ctx).remove_get();
         assert_eq!(request_value, None);
     }
 
@@ -286,7 +280,7 @@ async fn test() {
 
         let mut end_ctx = handler.handle(ctx_builder).await.unwrap();
         {
-            let session_state = SessionState::get_from_ctx(&end_ctx).await;
+            let session_state = SessionState::get_from_ctx(&end_ctx);
             let current_value = session_state.get_cloned::<u8>().await;
             assert_eq!(current_value, Some(2u8));
 
@@ -294,9 +288,7 @@ async fn test() {
             assert_eq!(times_used, Some(2u16));
         }
 
-        let request_value = RequestState::get_mut_from_ctx(&mut end_ctx)
-            .await
-            .remove_get();
+        let request_value = RequestState::get_mut_from_ctx(&mut end_ctx).remove_get();
         assert_eq!(request_value, Some(4u8));
     }
 }

@@ -669,10 +669,10 @@ pub fn derive_get_state(input: TokenStream) -> TokenStream {
     quote! {
         #(
             impl GetState<#ident> for #get_state_types {
-                async fn get_from_ctx(ctx: &#ident) -> impl ::std::ops::Deref<Target = Self> {
+                fn get_from_ctx(ctx: &#ident) -> impl ::std::ops::Deref<Target = Self> {
                     &ctx.#get_state_fields
                 }
-                async fn get_mut_from_ctx(ctx: &mut #ident) -> impl ::std::ops::DerefMut<Target = Self> {
+                fn get_mut_from_ctx(ctx: &mut #ident) -> impl ::std::ops::DerefMut<Target = Self> {
                     &mut ctx.#get_state_fields
                 }
             }
