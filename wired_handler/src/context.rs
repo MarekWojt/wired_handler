@@ -13,14 +13,9 @@ pub trait GetState<C: Context>: State {
 
 /// For building a context, given all fields except for the global state `S`
 pub trait ContextBuilder<S> {
-    /// The error returned when building the `Context` fails
-    type Error;
     /// The `Context` built
     type Output: Context;
 
     /// Builds the `Context` `Self::Output` with the global state `S`
-    fn build(
-        self,
-        global_state: S,
-    ) -> impl std::future::Future<Output = Result<Self::Output, Self::Error>> + Send;
+    fn build(self, global_state: S) -> impl std::future::Future<Output = Self::Output> + Send;
 }

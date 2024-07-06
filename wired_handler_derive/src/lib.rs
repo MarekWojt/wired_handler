@@ -312,16 +312,12 @@ pub fn derive_context(token_stream: TokenStream) -> TokenStream {
 * `#[global_state]` marks the global state (field) which is inserted when building (required)
 * `#[state]` marks a state (field) which has to be inserted before building
 */
-#[proc_macro_derive(
-    ContextBuilder,
-    attributes(global_state, state, builder_ident, error_ident)
-)]
+#[proc_macro_derive(ContextBuilder, attributes(global_state, state, builder_ident))]
 pub fn derive_context_builder(input: TokenStream) -> TokenStream {
     let input = parse_macro_input!(input as DeriveInput);
     let request_ctx_ident = input.ident;
-    let (builder_ident, error_ident) = {
+    let builder_ident = {
         let mut builder_ident = None;
-        let mut error_ident = None;
 
         for attr in input.attrs {
             let syn::Meta::NameValue(name_value) = attr.meta else {
@@ -332,37 +328,24 @@ pub fn derive_context_builder(input: TokenStream) -> TokenStream {
                 continue;
             };
 
-            if &first_path_segment.ident != "builder_ident"
-                && &first_path_segment.ident != "error_ident"
-            {
+            if &first_path_segment.ident != "builder_ident" {
                 continue;
             }
 
             let Expr::Lit(value_expr_lit) = name_value.value else {
-                continue;
+                panic!("builder_ident must be string literal");
             };
 
             let Lit::Str(str_lit) = value_expr_lit.lit else {
-                continue;
+                panic!("builder_ident must be string literal");
             };
 
-            let ident = Some(Ident::new(&str_lit.value(), request_ctx_ident.span()));
+            builder_ident = Some(Ident::new(&str_lit.value(), request_ctx_ident.span()));
 
-            match &first_path_segment.ident {
-                path_ident if path_ident == "builder_ident" => builder_ident = ident,
-                path_ident if path_ident == "error_ident" => error_ident = ident,
-                _ => unreachable!("can only be either builder_ident or error_ident"),
-            }
-
-            if builder_ident.is_some() && error_ident.is_some() {
-                break;
-            }
+            break;
         }
 
-        (
-            builder_ident.expect("please define a #[builder_ident]"),
-            error_ident.expect("please define a #[error_ident]"),
-        )
+        builder_ident.expect("please define a #[builder_ident]")
     };
 
     let request_ctx_vis = input.vis;
@@ -398,57 +381,27 @@ pub fn derive_context_builder(input: TokenStream) -> TokenStream {
         .expect("A RequestCtx must have one field that is #[global_state]");
 
     quote! {
-        #[derive(::std::fmt::Debug)]
-        #request_ctx_vis enum #error_ident {
-            MissingField,
-        }
-
-        impl ::std::fmt::Display for #error_ident {
-            fn fmt(&self, f: &mut ::std::fmt::Formatter<'_>) -> ::std::fmt::Result {
-                f.write_str("missing field")
-            }
-        }
-
-        impl ::std::error::Error for #error_ident {}
-
         #request_ctx_vis struct #builder_ident {
             #(
-                #state_field_idents: ::std::option::Option<#state_field_types>,
-            )*
-        }
-
-        impl #builder_ident {
-            pub fn new() -> Self {
-                Self {
-                    #(
-                        #state_field_idents: ::std::option::Option::None,
-                    )*
-                }
-            }
-            #(
-                pub fn #state_field_idents(&mut self, #state_field_idents: #state_field_types) -> &mut Self {
-                    self.#state_field_idents = ::std::option::Option::Some(#state_field_idents);
-                    self
-                }
+                pub #state_field_idents: #state_field_types,
             )*
         }
 
         impl ContextBuilder<#global_field_type> for #builder_ident {
             /// The `RequestCtx` generated, usually fed to a `Request`
             type Output = #request_ctx_ident;
-            type Error = #error_ident;
 
             /// Combines `self` and the global state of the `Router` into `Self::Output`
             async fn build(
                 self,
                 global_state: #global_field_type,
-            ) -> ::std::result::Result<Self::Output, Self::Error> {
-                ::std::result::Result::Ok(#request_ctx_ident {
+            ) -> Self::Output {
+                #request_ctx_ident {
                     #(
-                        #state_field_idents: self.#state_field_idents.ok_or(Self::Error::MissingField)?,
+                        #state_field_idents: self.#state_field_idents,
                     )*
                     #global_field_ident: global_state,
-                })
+                }
             }
         }
     }

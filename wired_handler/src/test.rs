@@ -84,7 +84,6 @@ struct RequestState(PlainState);
 
 #[derive(Debug, Default, Context, ContextBuilder, GetState)]
 #[builder_ident = "StartContextBuilder"]
-#[error_ident = "StartContextBuilderError"]
 struct StartContext {
     #[global_state]
     global_state: GlobalState,
@@ -113,11 +112,18 @@ impl StartContext {
         }
         session_state
     }
+
+    fn into_parts(self) -> (GlobalState, PreSessionState, RequestState) {
+        (
+            self.global_state,
+            self.pre_session_state,
+            self.request_state,
+        )
+    }
 }
 
 #[derive(Debug, Default, Context, ContextBuilder, GetState)]
 #[builder_ident = "EndContextBuilder"]
-#[error_ident = "EndContextBuilderError"]
 struct EndContext {
     #[global_state]
     global_state: GlobalState,
@@ -127,11 +133,17 @@ struct EndContext {
     session_state: SessionState,
 }
 
-impl From<StartContext> for EndContextBuilder {
-    fn from(value: StartContext) -> Self {
-        let mut builder = Self::new();
-        builder.request_state(value.request_state);
-        builder
+impl EndContext {
+    fn from_parts(
+        global_state: GlobalState,
+        session_state: SessionState,
+        request_state: RequestState,
+    ) -> Self {
+        Self {
+            global_state,
+            request_state,
+            session_state,
+        }
     }
 }
 
@@ -152,12 +164,9 @@ async fn start_handler(ctx: StartContext) -> EndContext {
         *times_used += 1u16;
     }
 
-    let global_state = GlobalState::get_from_ctx(&ctx).clone();
+    let (global_state, _pre_session_state, request_state) = ctx.into_parts();
 
-    let mut builder = EndContextBuilder::from(ctx);
-    builder.session_state(session_state);
-
-    builder.build(global_state).await.unwrap()
+    EndContext::from_parts(global_state, session_state, request_state)
 }
 
 async fn end_handler(ctx: &mut EndContext) {
@@ -198,16 +207,16 @@ async fn test() {
     let session1 = SessionId(0);
     let session2 = SessionId(1);
     {
-        let mut ctx_builder = StartContextBuilder::new();
         let mut request_state = RequestState::default();
         request_state.insert(1u8);
         let pre_session_state = PreSessionState::default();
         pre_session_state.insert(session1).await;
-        ctx_builder
-            .request_state(request_state)
-            .pre_session_state(pre_session_state);
+        let ctx_builder = StartContextBuilder {
+            request_state,
+            pre_session_state,
+        };
 
-        let mut end_ctx = handler.handle(ctx_builder).await.unwrap();
+        let mut end_ctx = handler.handle(ctx_builder).await;
         {
             let session_state = SessionState::get_from_ctx(&end_ctx);
             let current_value = session_state.get_cloned::<u8>().await;
@@ -222,16 +231,16 @@ async fn test() {
     }
 
     {
-        let mut ctx_builder = StartContextBuilder::new();
         let mut request_state = RequestState::default();
         request_state.insert(2u8);
         let pre_session_state = PreSessionState::default();
         pre_session_state.insert(session1).await;
-        ctx_builder
-            .request_state(request_state)
-            .pre_session_state(pre_session_state);
+        let ctx_builder = StartContextBuilder {
+            request_state,
+            pre_session_state,
+        };
 
-        let mut end_ctx = handler.handle(ctx_builder).await.unwrap();
+        let mut end_ctx = handler.handle(ctx_builder).await;
         {
             let session_state = SessionState::get_from_ctx(&end_ctx);
             let current_value = session_state.get_cloned::<u8>().await;
@@ -246,15 +255,15 @@ async fn test() {
     }
 
     {
-        let mut ctx_builder = StartContextBuilder::new();
         let request_state = RequestState::default();
         let pre_session_state = PreSessionState::default();
         pre_session_state.insert(session2).await;
-        ctx_builder
-            .request_state(request_state)
-            .pre_session_state(pre_session_state);
+        let ctx_builder = StartContextBuilder {
+            request_state,
+            pre_session_state,
+        };
 
-        let mut end_ctx = handler.handle(ctx_builder).await.unwrap();
+        let mut end_ctx = handler.handle(ctx_builder).await;
         {
             let session_state = SessionState::get_from_ctx(&end_ctx);
             let current_value = session_state.get_cloned::<u8>().await;
@@ -269,16 +278,16 @@ async fn test() {
     }
 
     {
-        let mut ctx_builder = StartContextBuilder::new();
         let mut request_state = RequestState::default();
         request_state.insert(2u8);
         let pre_session_state = PreSessionState::default();
         pre_session_state.insert(session2).await;
-        ctx_builder
-            .request_state(request_state)
-            .pre_session_state(pre_session_state);
+        let ctx_builder = StartContextBuilder {
+            request_state,
+            pre_session_state,
+        };
 
-        let mut end_ctx = handler.handle(ctx_builder).await.unwrap();
+        let mut end_ctx = handler.handle(ctx_builder).await;
         {
             let session_state = SessionState::get_from_ctx(&end_ctx);
             let current_value = session_state.get_cloned::<u8>().await;
