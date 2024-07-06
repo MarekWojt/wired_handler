@@ -392,7 +392,7 @@ pub fn derive_context_builder(input: TokenStream) -> TokenStream {
             type Output = #request_ctx_ident;
 
             /// Combines `self` and the global state of the `Router` into `Self::Output`
-            async fn build(
+            fn build(
                 self,
                 global_state: #global_field_type,
             ) -> Self::Output {

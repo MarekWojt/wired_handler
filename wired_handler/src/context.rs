@@ -17,5 +17,5 @@ pub trait ContextBuilder<S> {
     type Output: Context;
 
     /// Builds the `Context` `Self::Output` with the global state `S`
-    fn build(self, global_state: S) -> impl std::future::Future<Output = Self::Output> + Send;
+    fn build(self, global_state: S) -> Self::Output;
 }

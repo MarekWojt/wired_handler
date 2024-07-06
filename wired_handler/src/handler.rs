@@ -40,7 +40,7 @@ impl<CIn: Context, COut: Context, S: State + Clone, F: Future<Output = COut>>
 
     /// Handles a request. Accepts a `ContextBuilder` `B` which will be completed to a `Context` with the global state `S`, which is then passed to the handler fn
     pub async fn handle<B: ContextBuilder<S, Output = CIn>>(&self, builder: B) -> COut {
-        let ctx = builder.build(self.state.clone()).await;
+        let ctx = builder.build(self.state.clone());
         let handler = self.handler;
         handler(ctx).await
     }
