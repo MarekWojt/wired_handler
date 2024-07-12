@@ -15,6 +15,9 @@ mod sync_immutable {
     pub trait StateSyncGet: State {
         /// Gets data of type `T`
         fn get<T: 'static + Send + Sync>(&self) -> Option<&T>;
+        fn exists<T: 'static + Send + Sync>(&self) -> bool {
+            self.get::<T>().is_some()
+        }
     }
 
     /// Get cloned data (sync immutable version)
@@ -82,6 +85,12 @@ mod async_immutable {
         fn get<T: 'static + Send + Sync>(
             &self,
         ) -> impl std::future::Future<Output = Option<impl Deref<Target = T>>> + Send;
+        fn exists<T: 'static + Send + Sync>(&self) -> impl std::future::Future<Output = bool> + Send
+        where
+            Self: Sync,
+        {
+            async { self.get::<T>().await.is_some() }
+        }
     }
 
     /// Get data mutably (async immutable version)

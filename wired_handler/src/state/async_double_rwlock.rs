@@ -40,6 +40,10 @@ impl StateAsyncGet for AsyncDoubleRwLockState {
 
         OwnedRwLockReadGuard::try_map(guard, |data| data.downcast_ref::<T>()).ok()
     }
+
+    async fn exists<T: 'static + Send + Sync>(&self) -> bool {
+        self.0.read().await.contains_key(&TypeId::of::<T>())
+    }
 }
 
 impl StateAsyncGetMut for AsyncDoubleRwLockState {

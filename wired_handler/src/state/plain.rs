@@ -18,6 +18,10 @@ impl StateSyncGet for PlainState {
             .get(&TypeId::of::<T>())
             .and_then(|boxed_data| boxed_data.downcast_ref())
     }
+
+    fn exists<T: 'static + Send + Sync>(&self) -> bool {
+        self.0.contains_key(&TypeId::of::<T>())
+    }
 }
 
 impl StateSyncMutableGetMut for PlainState {
@@ -64,11 +68,10 @@ impl StateSyncMutableGetMutOrInsert for PlainState {
         &mut self,
         get_data: impl FnOnce() -> T,
     ) -> &mut T {
-        if self.get::<T>().is_some() {
-            self.get_mut().unwrap() // it's there, we just checked it
-        } else {
+        if !self.exists::<T>() {
             self.insert(get_data());
-            self.get_mut().unwrap() // it's there, we just inserted it
         }
+
+        self.get_mut().unwrap() // we just made sure it exists
     }
 }

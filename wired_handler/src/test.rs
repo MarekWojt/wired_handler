@@ -219,9 +219,11 @@ async fn test() {
         let mut end_ctx = handler.handle(ctx_builder).await;
         {
             let session_state = SessionState::get_from_ctx(&end_ctx);
+            assert!(session_state.exists::<u8>().await);
             let current_value = session_state.get_cloned::<u8>().await;
             assert_eq!(current_value, Some(1u8));
 
+            assert!(session_state.exists::<u16>().await);
             let times_used = session_state.get_cloned::<u16>().await;
             assert_eq!(times_used, Some(1u16));
         }
@@ -243,9 +245,11 @@ async fn test() {
         let mut end_ctx = handler.handle(ctx_builder).await;
         {
             let session_state = SessionState::get_from_ctx(&end_ctx);
+            assert!(session_state.exists::<u8>().await);
             let current_value = session_state.get_cloned::<u8>().await;
             assert_eq!(current_value, Some(3u8));
 
+            assert!(session_state.exists::<u16>().await);
             let times_used = session_state.get_cloned::<u16>().await;
             assert_eq!(times_used, Some(2u16));
         }
@@ -266,9 +270,11 @@ async fn test() {
         let mut end_ctx = handler.handle(ctx_builder).await;
         {
             let session_state = SessionState::get_from_ctx(&end_ctx);
+            assert!(session_state.exists::<u8>().await);
             let current_value = session_state.get_cloned::<u8>().await;
             assert_eq!(current_value, Some(0u8));
 
+            assert!(session_state.exists::<u16>().await);
             let times_used = session_state.get_cloned::<u16>().await;
             assert_eq!(times_used, Some(1u16));
         }
@@ -290,9 +296,11 @@ async fn test() {
         let mut end_ctx = handler.handle(ctx_builder).await;
         {
             let session_state = SessionState::get_from_ctx(&end_ctx);
+            assert!(session_state.exists::<u8>().await);
             let current_value = session_state.get_cloned::<u8>().await;
             assert_eq!(current_value, Some(2u8));
 
+            assert!(session_state.exists::<u16>().await);
             let times_used = session_state.get_cloned::<u16>().await;
             assert_eq!(times_used, Some(2u16));
         }

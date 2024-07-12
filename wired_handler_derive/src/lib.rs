@@ -28,6 +28,10 @@ pub fn derive_state_sync_get(token_stream: TokenStream) -> TokenStream {
             fn get<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self) -> ::std::option::Option<&T> {
                 self.0.get::<T>()
             }
+
+            fn exists<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self) -> bool {
+                self.0.exists::<T>()
+            }
         }
     }
     .into()
@@ -153,6 +157,10 @@ pub fn derive_state_async_get(token_stream: TokenStream) -> TokenStream {
         impl StateAsyncGet for #ident {
             async fn get<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self) -> ::std::option::Option<impl ::std::ops::Deref<Target = T>> {
                 self.0.get::<T>().await
+            }
+
+            async fn exists<T: 'static + ::core::marker::Send + ::core::marker::Sync>(&self) -> bool {
+                self.0.exists::<T>().await
             }
         }
     }
