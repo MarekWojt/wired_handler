@@ -182,7 +182,7 @@ checksum = "3354b9ac3fae1ff6755cb6db53683adb661634f67557942dea4facebec0fee4b"
 
 [[package]]
 name = "wired_handler"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "rustc-hash",
  "thiserror",
@@ -192,7 +192,7 @@ dependencies = [
 
 [[package]]
 name = "wired_handler_derive"
-version = "0.11.0"
+version = "0.11.1"
 dependencies = [
  "quote",
  "syn",
