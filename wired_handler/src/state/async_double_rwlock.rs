@@ -21,6 +21,11 @@ type SyncedAny = Arc<RwLock<dyn Any + Send + Sync>>;
 pub struct AsyncDoubleRwLockState(Arc<RwLock<FxHashMap<TypeId, SyncedAny>>>);
 
 impl AsyncDoubleRwLockState {
+    /// Creates a new `AsyncDoubleRwLockState`
+    pub fn new() -> Self {
+        Self::default()
+    }
+
     async fn internal_get_mut<T: 'static + Send + Sync>(
         &self,
     ) -> Option<OwnedRwLockMappedWriteGuard<(dyn Any + Send + Sync), T>> {

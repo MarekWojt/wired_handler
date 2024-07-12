@@ -11,6 +11,13 @@ use crate::{
 #[derive(Debug, Default, State)]
 pub struct PlainState(FxHashMap<TypeId, Box<dyn Any + Send + Sync>>);
 
+impl PlainState {
+    /// Creates a new `PlainState`
+    pub fn new() -> Self {
+        Self::default()
+    }
+}
+
 impl StateSyncGet for PlainState {
     fn get<T: 'static + Send + Sync>(&self) -> Option<&T> {
         self.0
