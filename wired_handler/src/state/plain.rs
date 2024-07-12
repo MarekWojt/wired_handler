@@ -1,7 +1,6 @@
-use std::{
-    any::{Any, TypeId},
-    collections::HashMap,
-};
+use std::any::{Any, TypeId};
+
+use rustc_hash::FxHashMap;
 
 use crate::{
     State, StateSyncGet, StateSyncGetCloned, StateSyncMutableGetMut,
@@ -10,7 +9,7 @@ use crate::{
 
 /// `State` for local usage. Doesn't do anything fancy
 #[derive(Debug, Default, State)]
-pub struct PlainState(HashMap<TypeId, Box<dyn Any + Send + Sync>>);
+pub struct PlainState(FxHashMap<TypeId, Box<dyn Any + Send + Sync>>);
 
 impl StateSyncGet for PlainState {
     fn get<T: 'static + Send + Sync>(&self) -> Option<&T> {

@@ -9,6 +9,7 @@ repository = "https://github.com/MarekWojt/wired_handler"
 [dependencies]
 tokio = { workspace = true, features = ["sync"] }
 wired_handler_derive.workspace = true
+rustc-hash.workspace = true
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["rt-multi-thread"] }

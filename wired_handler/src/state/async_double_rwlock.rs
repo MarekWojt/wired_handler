@@ -5,11 +5,11 @@ use crate::{
 
 use std::{
     any::{Any, TypeId},
-    collections::HashMap,
     ops::{Deref, DerefMut},
     sync::Arc,
 };
 
+use rustc_hash::FxHashMap;
 use tokio::sync::{
     OwnedRwLockMappedWriteGuard, OwnedRwLockReadGuard, OwnedRwLockWriteGuard, RwLock,
 };
@@ -18,7 +18,7 @@ type SyncedAny = Arc<RwLock<dyn Any + Send + Sync>>;
 
 /// `State` to be shared between async tasks. Utilizes `tokio`'s `RwLock` for concurrency
 #[derive(Debug, Clone, Default, State)]
-pub struct AsyncDoubleRwLockState(Arc<RwLock<HashMap<TypeId, SyncedAny>>>);
+pub struct AsyncDoubleRwLockState(Arc<RwLock<FxHashMap<TypeId, SyncedAny>>>);
 
 impl AsyncDoubleRwLockState {
     async fn internal_get_mut<T: 'static + Send + Sync>(
