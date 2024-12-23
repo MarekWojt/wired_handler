@@ -1,18 +1,38 @@
 [workspace]
 members = [
     "wired_handler",
-    "wired_handler_derive"
+    "wired_handler_derive",
+    "wired_handler_hyper",
+    "wired_handler_hyper_derive"
 ]
 resolver = "2"
 
 [workspace.package]
-version = "0.11.1"
+version = "0.11.2"
 
 [workspace.dependencies]
-wired_handler = { path = "./wired_handler", version = "0.11.1" }
-wired_handler_derive = { path = "./wired_handler_derive", version = "0.11.1" }
-tokio = "1.38.0"
-syn = "2.0.70"
-quote = "1.0.36"
-thiserror = "1.0.62"
-rustc-hash = "2.0.0"
+wired_handler = { path = "./wired_handler", version = "0.11.2" }
+wired_handler_derive = { path = "./wired_handler_derive", version = "0.11.2" }
+tokio = "1.42.0"
+syn = "2.0.91"
+quote = "1.0.37"
+thiserror = "2.0.9"
+rustc-hash = "2.1.0"
+tracing = "0.1.41"
+uuid = { version = "1.11.0", features = ["v4"] }
+async_fn_traits = "0.1.1"
+futures = "0.3.31"
+
+hyper = { version = "1.5.2", features = ["http1", "server"] }
+hyper-util = { version = "0.1.10", features = ["tokio"] }
+hyper-tungstenite = "0.17.0"
+http-body-util = "0.1.2"
+http = "1.2.0"
+
+serde = { version = "1.0.216", features = ["derive"] }
+serde_html_form = "0.2.7"
+serde_json = "1.0.134"
+
+diesel = "2.2.6"
+diesel-async = { version = "0.5.2", features = ["postgres", "deadpool", "async-connection-wrapper"] }
+diesel_migrations = "2.2.0"

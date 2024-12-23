@@ -1,0 +1,37 @@
+[package]
+name = "wired_handler_hyper"
+edition = "2021"
+version.workspace = true
+description = "wired_handler's hyper extzension"
+license = "MIT"
+repository = "https://github.com/MarekWojt/wired_handler"
+
+[dependencies]
+thiserror.workspace = true
+wired_handler.workspace = true
+tracing.workspace = true
+uuid.workspace = true
+
+futures.workspace = true
+tokio.workspace = true
+async_fn_traits.workspace = true
+
+hyper.workspace = true
+hyper-tungstenite = { workspace = true, optional = true }
+hyper-util.workspace = true
+http-body-util.workspace = true
+http.workspace = true
+
+serde.workspace = true
+serde_html_form.workspace = true
+serde_json = { workspace = true, optional = true }
+
+diesel = { workspace = true, optional = true }
+diesel-async = { workspace = true, optional = true }
+diesel_migrations = { workspace = true, optional = true }
+
+[features]
+default = ["json", "diesel", "websocket"]
+websocket = ["hyper-tungstenite"]
+json = ["serde_json"]
+diesel = ["dep:diesel", "diesel-async", "diesel_migrations"]

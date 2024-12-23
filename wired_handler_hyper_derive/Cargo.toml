@@ -1,0 +1,9 @@
+[package]
+name = "wired_handler_hyper_derive"
+edition = "2021"
+version.workspace = true
+description = "wired_handler's hyper extension's derive macros"
+license = "MIT"
+repository = "https://github.com/MarekWojt/wired_handler"
+
+[dependencies]
