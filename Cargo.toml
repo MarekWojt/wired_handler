@@ -8,11 +8,11 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.11.2"
+version = "0.12.0"
 
 [workspace.dependencies]
-wired_handler = { path = "./wired_handler", version = "0.11.2" }
-wired_handler_derive = { path = "./wired_handler_derive", version = "0.11.2" }
+wired_handler = { path = "./wired_handler", version = "0.12.0" }
+wired_handler_derive = { path = "./wired_handler_derive", version = "0.12.0" }
 tokio = "1.43.0"
 syn = "2.0.98"
 quote = "1.0.38"

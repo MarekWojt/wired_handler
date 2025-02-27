@@ -1428,7 +1428,7 @@ dependencies = [
 
 [[package]]
 name = "wired_handler"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "rustc-hash",
  "thiserror",
@@ -1438,7 +1438,7 @@ dependencies = [
 
 [[package]]
 name = "wired_handler_derive"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "quote",
  "syn",
@@ -1447,7 +1447,7 @@ dependencies = [
 
 [[package]]
 name = "wired_handler_hyper"
-version = "0.11.2"
+version = "0.12.0"
 dependencies = [
  "async_fn_traits",
  "diesel",
@@ -1471,7 +1471,7 @@ dependencies = [
 
 [[package]]
 name = "wired_handler_hyper_derive"
-version = "0.11.2"
+version = "0.12.0"
 
 [[package]]
 name = "wit-bindgen-rt"
