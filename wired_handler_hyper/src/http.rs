@@ -82,25 +82,25 @@ pub enum RunHttpServerError {
 }
 
 pub trait RunHttpServerExt {
-    fn run_http_server(self) -> impl Future<Output = Result<(), RunHttpServerError>>;
+    /// Runs the HTTP server with the given `bind_config`
+    fn run_http_server(
+        self,
+        bind_config: BindConfig,
+    ) -> impl Future<Output = Result<(), RunHttpServerError>>;
 }
 
 impl<F: Future<Output = HttpRequestContext> + 'static + Send> RunHttpServerExt
     for Handler<SessionlessRequestContext, HttpRequestContext, GlobalState, F>
 {
-    /// Runs the HTTP server with the given handler, its config is extracted from the global state of the handler
-    async fn run_http_server(self) -> Result<(), RunHttpServerError> {
-        let bind_addr = &self
-            .state()
-            .get::<BindConfig>()
-            .await
-            .expect("no BindConfig found")
-            .addr
-            .to_string();
+    async fn run_http_server(self, bind_config: BindConfig) -> Result<(), RunHttpServerError> {
+        let bind_addr = bind_config.addr.as_str();
 
         info!("starting http server on {bind_addr}");
         let tcp_listener = TcpListener::bind(bind_addr).await?;
         info!("listening on http://{bind_addr}");
+
+        self.state().insert(bind_config).await;
+
         let http_service_fn =
             service_fn(move |request: Request| handle_request(request, self.clone()));
         loop {
