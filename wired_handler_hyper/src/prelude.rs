@@ -15,7 +15,7 @@ pub use crate::{
 };
 
 #[cfg(feature = "diesel")]
-pub use crate::data::db::{ContextGetDbExt, DbConnectionExt, DbPoolExt};
+pub use crate::data::db::{ContextGetDbExt, DbConnectionExt, DbPoolExt, LoadDbExt};
 
 #[cfg(feature = "websocket")]
 pub use crate::data::{
