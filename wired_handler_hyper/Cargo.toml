@@ -1,6 +1,6 @@
 [package]
 name = "wired_handler_hyper"
-edition = "2021"
+edition = "2024"
 version.workspace = true
 description = "wired_handler's hyper extzension"
 license = "MIT"
