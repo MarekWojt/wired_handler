@@ -57,9 +57,9 @@ macro_rules! actions {
 /// test `run_handler!`
 #[cfg(test)]
 mod test_run_handler {
-    use std::ops::ControlFlow;
-
+    #![allow(clippy::result_large_err)]
     use crate::data::http_error::HttpError;
+    use std::ops::ControlFlow;
 
     fn test_break() -> Result<ControlFlow<()>, HttpError> {
         run_handler!(Result::<ControlFlow<()>, HttpError>::Ok(

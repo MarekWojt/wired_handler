@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 use quote::quote;
 use syn::{
-    parse_macro_input, Attribute, Data, DeriveInput, Expr, Ident, Lit, Meta, PathArguments, Type,
+    Attribute, Data, DeriveInput, Expr, Ident, Lit, Meta, PathArguments, Type, parse_macro_input,
 };
 
 /// Derive `State`
@@ -316,7 +316,6 @@ pub fn derive_context(token_stream: TokenStream) -> TokenStream {
 
 /** Derive `ContextBuilder`
 * `#[builder_ident = "MyBuilder"]` defines the name of the builder (required)
-* `#[error_ident = "MyBuilderError"]` defines the name of the builder error (required)
 * `#[global_state]` marks the global state (field) which is inserted when building (required)
 * `#[state]` marks a state (field) which has to be inserted before building
 */

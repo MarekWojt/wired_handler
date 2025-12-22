@@ -1,10 +1,9 @@
-use std::ops::ControlFlow;
-
 use super::{http_error::HttpError, response_body::ResponseBody};
 use crate::{
     prelude::*,
     state::{context::HttpRequestContext, request_state::RequestState},
 };
+use std::ops::ControlFlow;
 
 pub type Response = hyper::Response<ResponseBody>;
 
@@ -17,6 +16,7 @@ pub trait ResponseBuilderExt {
 
 impl ResponseBuilderExt for Response {}
 
+#[allow(clippy::result_large_err)]
 /// Returns helpers for `HttpRequestContext`
 pub trait ContextReturnResponseExt {
     /// Continue to run the next handler

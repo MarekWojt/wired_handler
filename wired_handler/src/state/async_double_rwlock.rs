@@ -28,7 +28,7 @@ impl AsyncDoubleRwLockState {
 
     async fn internal_get_mut<T: 'static + Send + Sync>(
         &self,
-    ) -> Option<OwnedRwLockMappedWriteGuard<(dyn Any + Send + Sync), T>> {
+    ) -> Option<OwnedRwLockMappedWriteGuard<dyn Any + Send + Sync, T>> {
         let data = { self.0.read().await.get(&TypeId::of::<T>())?.clone() };
 
         let guard = data.write_owned().await;
