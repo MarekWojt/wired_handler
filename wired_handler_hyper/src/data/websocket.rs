@@ -108,11 +108,35 @@ impl ContextWebsocketExt for HttpRequestContext {
 
             // message handling
             while let Some(message) = rx.next().await {
+                use hyper_tungstenite::tungstenite::Error as TungsteniteError;
+                use std::io::ErrorKind as IoErrorKind;
+
                 // output errors
                 let message = match message {
                     Ok(message) => message,
+                    // abort on fatal errors
+                    Err(err)
+                        if matches!(
+                            err,
+                            TungsteniteError::AttackAttempt
+                                | TungsteniteError::Protocol(_)
+                                | TungsteniteError::Tls(_)
+                                | TungsteniteError::ConnectionClosed
+                                | TungsteniteError::AlreadyClosed
+                        ) =>
+                    {
+                        tracing::debug!("websocket receive failed, aborting: {err}");
+                        break;
+                    }
+                    // abort on io errors except WouldBlock
+                    Err(TungsteniteError::Io(err))
+                        if !matches!(err.kind(), IoErrorKind::WouldBlock) =>
+                    {
+                        tracing::debug!("websocket receive failed, aborting: {err}");
+                        break;
+                    }
                     Err(err) => {
-                        tracing::debug!("websocket receive failed: {err}");
+                        tracing::debug!("websocket receive failed, skipping: {err}");
                         continue;
                     }
                 };
