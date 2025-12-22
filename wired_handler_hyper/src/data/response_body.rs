@@ -1,4 +1,4 @@
-use http_body_util::{combinators::BoxBody, BodyExt, Empty, Full};
+use http_body_util::{BodyExt, Empty, Full, combinators::BoxBody};
 use hyper::body::Bytes;
 use serde::Serialize;
 use thiserror::Error;

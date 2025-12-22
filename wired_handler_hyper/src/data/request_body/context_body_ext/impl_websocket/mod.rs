@@ -17,7 +17,7 @@ impl ContextCreateBodyExt for WebsocketRequestContext {
     }
 
     fn mark_body_parsed(&mut self) {
-        RequestState::get_mut_from_ctx(self).insert(RequestBodyParsed)
+        RequestState::get_mut_from_ctx(self).insert(RequestBodyParsed);
     }
 
     fn body_exists<T: DeserializeOwned + Send + Sync + 'static>(&self) -> bool {
@@ -59,7 +59,7 @@ impl ContextGetBodyExt for WebsocketRequestContext {
         Ok(
             RequestState::get_from_ctx(self)
                 .get::<RequestBody<T>>()
-                .map(|request_body| request_body.get())
+                .map(RequestBody::get)
                 .unwrap(), // has just been inserted
         )
     }
@@ -74,7 +74,7 @@ impl ContextGetBodyExt for WebsocketRequestContext {
         Ok(
             RequestState::get_mut_from_ctx(self)
                 .get_mut::<RequestBody<T>>()
-                .map(|request_body| request_body.get_mut())
+                .map(RequestBody::get_mut)
                 .unwrap(), // has just been inserted
         )
     }

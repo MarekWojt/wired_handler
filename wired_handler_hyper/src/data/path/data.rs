@@ -39,7 +39,7 @@ impl Iterator for RemainingPath {
         self.0 = if next_element.is_empty() {
             None
         } else {
-            Some(remaining_path.to_string())
+            Some(remaining_path.clone())
         };
 
         Some(next_element)
@@ -60,7 +60,7 @@ impl DoubleEndedIterator for RemainingPath {
         self.0 = if next_element.is_empty() {
             None
         } else {
-            Some(remaining_path.to_string())
+            Some(remaining_path.clone())
         };
 
         Some(next_element)

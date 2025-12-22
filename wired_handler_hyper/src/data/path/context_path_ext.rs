@@ -5,7 +5,7 @@ use crate::{
 
 use super::RemainingPath;
 
-/// For creating the RemainingPath
+/// For creating the `RemainingPath`
 pub trait ContextCreateRemainingPathExt {
     /// Ensure a remaining path is in the state
     fn create_remaining_path(&mut self);

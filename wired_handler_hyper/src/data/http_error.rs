@@ -1,4 +1,4 @@
-use hyper::{body::Bytes, StatusCode};
+use hyper::{StatusCode, body::Bytes};
 use thiserror::Error;
 #[cfg(feature = "diesel")]
 use tracing::warn;
@@ -68,7 +68,7 @@ impl From<BatchSendError> for HttpError {
     }
 }
 
-/// Creates constructors on HttpError.
+/// Creates constructors on `HttpError`.
 /// Accepted format is: `generate_constructors!((name1, StatusCode::SOME_STATUS), (name2, StatusCode::SOME_OTHER_STATUS))`
 macro_rules! generate_constructors {
     (

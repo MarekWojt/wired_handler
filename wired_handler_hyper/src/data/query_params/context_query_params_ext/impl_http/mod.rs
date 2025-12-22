@@ -1,7 +1,7 @@
 use serde::de::DeserializeOwned;
 
 use crate::{
-    data::query_params::{data::QueryParams, GetQueryParamsError},
+    data::query_params::{GetQueryParamsError, data::QueryParams},
     prelude::*,
     state::{context::HttpRequestContext, request_state::RequestState},
 };
@@ -24,7 +24,7 @@ impl ContextCreateQueryParamsExt for HttpRequestContext {
 
         RequestState::get_from_ctx(self)
             .get::<String>()
-            .map(|string| string.as_str())
+            .map(String::as_str)
     }
 
     fn parse_query_params<T: DeserializeOwned + Send + Sync + 'static>(
