@@ -44,7 +44,7 @@ impl ContextWebsocketExt for HttpRequestContext {
         for<'a> <Fn as AsyncFn1<&'a mut WebsocketRequestContext>>::OutputFuture: Send,
     {
         // return error if request isn't websocket request
-        if !hyper_tungstenite::is_upgrade_request(self.request_mut()) {
+        if !hyper_tungstenite::is_upgrade_request(self.request()) {
             return Err(HttpError::from(
                 Response::builder()
                     .status(StatusCode::UPGRADE_REQUIRED)
