@@ -59,6 +59,7 @@ impl From<ParseBodyError> for HttpError {
 }
 
 /// A parsed body, containing the body and type information to be inserted into the Response
+#[derive(Debug)]
 pub struct ParsedBody {
     response_body: ResponseBody,
     content_type: String,
