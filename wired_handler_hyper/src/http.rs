@@ -1,8 +1,8 @@
-use std::{future::Future, net::SocketAddr};
+use std::future::Future;
 
 use hyper::{
-    service::{service_fn, Service},
     StatusCode,
+    service::{Service, service_fn},
 };
 use hyper_util::rt::TokioTimer;
 use thiserror::Error;
@@ -22,10 +22,16 @@ use crate::{
     },
 };
 
+fn internal_server_error_response() -> Response {
+    hyper::Response::builder()
+        .status(StatusCode::INTERNAL_SERVER_ERROR)
+        .body(ResponseBody::from_bytes("missing response"))
+        .expect("ResponseBuilder failed with a valid StatusCode")
+}
+
 /// Handles a connection, can be a single HTTP request or multiple if keep-alive is used
 async fn handle_connection(
     stream: TcpStream,
-    _addr: SocketAddr,
     http_service_fn: impl Service<Request, Error = hyper::http::Error, Response = Response>,
 ) -> Result<(), hyper::Error> {
     let io = hyper_util::rt::TokioIo::new(stream);
@@ -42,6 +48,15 @@ async fn handle_connection(
     conn.await?;
 
     Ok(())
+}
+
+async fn handle_connection_and_output_errors(
+    stream: TcpStream,
+    http_service_fn: impl Service<Request, Error = hyper::http::Error, Response = Response>,
+) {
+    if let Err(err) = handle_connection(stream, http_service_fn).await {
+        tracing::debug!("connection error: {err}");
+    }
 }
 
 /// Handles a single request, turning a `Request` in a `Response`
@@ -67,10 +82,8 @@ async fn handle_request(
     let response: Option<Response> = RequestState::get_mut_from_ctx(&mut result_ctx).remove_get();
 
     Ok(response.unwrap_or_else(|| {
-        hyper::Response::builder()
-            .status(StatusCode::INTERNAL_SERVER_ERROR)
-            .body(ResponseBody::from_bytes("missing response"))
-            .unwrap() // This is static code, it either always fails or never
+        tracing::error!("handler produced no response");
+        internal_server_error_response()
     }))
 }
 
@@ -105,8 +118,11 @@ impl<F: Future<Output = HttpRequestContext> + 'static + Send> RunHttpServerExt
             service_fn(move |request: Request| handle_request(request, self.clone()));
         loop {
             let (stream, addr) = tcp_listener.accept().await?;
-            trace!("new connection on {:?}", &addr);
-            tokio::spawn(handle_connection(stream, addr, http_service_fn.clone()));
+            trace!("new connection on {:?}", addr);
+            tokio::spawn(handle_connection_and_output_errors(
+                stream,
+                http_service_fn.clone(),
+            ));
         }
     }
 }
