@@ -6,23 +6,23 @@ pub struct RemainingPath(pub(crate) Option<String>);
 
 impl RemainingPath {
     /// Returns the next element without changing the remaining path
-    pub fn peek(&self) -> Option<String> {
-        let Some((next_element, _)) = self.0.as_ref()?.split_once('/') else {
-            // unwrap is okay because it would have returned above
-            return Some(self.0.clone().unwrap());
+    pub fn peek(&self) -> Option<&str> {
+        let string_value = self.0.as_ref()?;
+        let Some((next_element, _)) = string_value.split_once('/') else {
+            return Some(string_value);
         };
 
-        Some(next_element.to_string())
+        Some(next_element)
     }
 
     /// Returns the next last element without changing the remaining path
-    pub fn peek_back(&self) -> Option<String> {
-        let Some((_, next_element)) = self.0.as_ref()?.rsplit_once('/') else {
-            // unwrap is okay because it would have returned above
-            return Some(self.0.clone().unwrap());
+    pub fn peek_back(&self) -> Option<&str> {
+        let string_value = self.0.as_ref()?;
+        let Some((_, next_element)) = string_value.rsplit_once('/') else {
+            return Some(string_value);
         };
 
-        Some(next_element.to_string())
+        Some(next_element)
     }
 }
 
@@ -39,7 +39,7 @@ impl Iterator for RemainingPath {
         self.0 = if next_element.is_empty() {
             None
         } else {
-            Some(remaining_path.clone())
+            Some(remaining_path)
         };
 
         Some(next_element)
@@ -60,7 +60,7 @@ impl DoubleEndedIterator for RemainingPath {
         self.0 = if next_element.is_empty() {
             None
         } else {
-            Some(remaining_path.clone())
+            Some(remaining_path)
         };
 
         Some(next_element)
