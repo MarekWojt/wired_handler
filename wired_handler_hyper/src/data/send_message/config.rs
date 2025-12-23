@@ -1,4 +1,4 @@
-use std::{sync::OnceLock, time::Duration};
+use std::{num::TryFromIntError, sync::OnceLock, time::Duration};
 
 use thiserror::Error;
 
@@ -17,8 +17,8 @@ static GLOBAL_MAX_PARALLEL_SENDS: OnceLock<usize> = OnceLock::new();
 
 #[derive(Debug, Error)]
 pub enum SetGlobalSendTimeoutError {
-    #[error("The given duration is too long, {0:?} > {max:?}", max = Duration::from_millis(u32::MAX as u64))]
-    TooLarge(Duration),
+    #[error("{0}")]
+    TooLarge(#[from] TryFromIntError),
     #[error("The global send timeout has already been set")]
     AlreadySet(Duration),
 }
@@ -36,22 +36,20 @@ pub enum SetGlobalMaxParallelSendsError {
 /// # Errors
 /// if the given duration in milliseconds is larger than a maximum sized `u32` (~49.7 days)
 pub fn set_global_send_timeout(duration: Duration) -> Result<(), SetGlobalSendTimeoutError> {
-    let millis = duration.as_millis();
-
-    if millis > u32::MAX as u128 {
-        return Err(SetGlobalSendTimeoutError::TooLarge(duration));
-    }
+    let millis = u32::try_from(duration.as_millis())?;
 
     tracing::debug!("Global send timeout set to {millis}");
 
     GLOBAL_SEND_TIMEOUT_MS
-        .set(millis as u32)
+        .set(millis)
         .map_err(|_| SetGlobalSendTimeoutError::AlreadySet(duration))
 }
 
 /// Returns the currently set timeout for websocket message sends
 pub fn global_send_timeout() -> Duration {
-    Duration::from_millis(*GLOBAL_SEND_TIMEOUT_MS.get_or_init(|| DEFAULT_TIMEOUT_MS) as u64)
+    Duration::from_millis(u64::from(
+        *GLOBAL_SEND_TIMEOUT_MS.get_or_init(|| DEFAULT_TIMEOUT_MS),
+    ))
 }
 
 fn do_set_global_max_parallel_sends(
