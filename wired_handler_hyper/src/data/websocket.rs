@@ -6,8 +6,11 @@ use http::StatusCode;
 use http_body_util::BodyExt;
 
 use super::{
-    connection_id::ConnectionId, connection_storage::ConnectionStorage, http_error::HttpError,
-    response::Response, response_body::ResponseBody,
+    connection_id::ConnectionId,
+    connection_storage::ConnectionStorage,
+    http_error::{HttpError, HttpErrorFromResponseExt},
+    response::Response,
+    response_body::ResponseBody,
 };
 use crate::{
     prelude::*,
@@ -19,6 +22,25 @@ use crate::{
         session_state::SessionState,
     },
 };
+
+trait HttpErrorWebsocketExt {
+    fn websocket_upgrade_required() -> Self;
+}
+
+impl HttpErrorWebsocketExt for HttpError {
+    fn websocket_upgrade_required() -> Self {
+        let response = match Response::builder()
+            .status(StatusCode::UPGRADE_REQUIRED)
+            .header("Upgrade", "websocket")
+            .body(ResponseBody::empty())
+        {
+            Ok(response) => response,
+            Err(err) => return err.into(),
+        };
+        #[allow(deprecated)]
+        Self::from_response(response)
+    }
+}
 
 /// For upgrading the request to a websocket
 pub trait ContextWebsocketExt {
@@ -45,12 +67,7 @@ impl ContextWebsocketExt for HttpRequestContext {
     {
         // return error if request isn't websocket request
         if !hyper_tungstenite::is_upgrade_request(self.request()) {
-            return Err(HttpError::from(
-                Response::builder()
-                    .status(StatusCode::UPGRADE_REQUIRED)
-                    .header("Upgrade", "websocket")
-                    .body(ResponseBody::empty())?,
-            ));
+            return Err(HttpError::websocket_upgrade_required());
         }
 
         // upgrade to websocket

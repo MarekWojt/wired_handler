@@ -12,7 +12,7 @@ use crate::prelude::*;
 /// An HTTP error to be used when something goes wrong
 #[derive(Debug, Error)]
 #[error("{0:?}")]
-pub struct HttpError(pub Response);
+pub struct HttpError(Response);
 
 impl From<HttpError> for Response {
     fn from(value: HttpError) -> Self {
@@ -21,20 +21,15 @@ impl From<HttpError> for Response {
 }
 
 impl HttpError {
+    #[allow(clippy::missing_panics_doc)]
     /// Creates a new `HttpError` with the respective `StatusCode`
     pub fn new(status: StatusCode, message: impl Into<Bytes>) -> Self {
         Self(
             hyper::Response::builder()
                 .status(status)
                 .body(ResponseBody::from_bytes(message.into()))
-                .unwrap(), // can only fail on headers, no headers given
+                .expect("Response builder failed with a valid StatusCode"),
         )
-    }
-}
-
-impl From<Response> for HttpError {
-    fn from(value: Response) -> Self {
-        Self(value)
     }
 }
 
@@ -65,6 +60,23 @@ impl From<diesel::result::Error> for HttpError {
 impl From<BatchSendError> for HttpError {
     fn from(value: BatchSendError) -> Self {
         HttpError::internal_server_error(format!("{value}"))
+    }
+}
+
+/// An extension of `HttpError` to allow creating one from a `Response`
+///
+/// THIS SHOULD NOT BE USED IN PRODUCTION CODE, UNLESS EXTENDING `HttpError`
+pub trait HttpErrorFromResponseExt {
+    /// Allows for creating an `HttpError` from a `Response`
+    ///
+    /// THIS SHOULD NOT BE USED IN PRODUCTION CODE, UNLESS EXTENDING `HttpError`
+    #[deprecated = "use this only for extending `HttpError`, not in production code"]
+    fn from_response(response: Response) -> Self;
+}
+
+impl HttpErrorFromResponseExt for HttpError {
+    fn from_response(response: Response) -> Self {
+        Self(response)
     }
 }
 
