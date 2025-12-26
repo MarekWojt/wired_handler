@@ -18,7 +18,7 @@ pub type DbConnection = Object<AsyncPgConnection>;
 
 #[doc(hidden)]
 pub trait DbConnectionInternalRunMigrationsExt {
-    /// Runs pending migrations or shows warning in debug mode. If used in an async context, must be called from `tokio::task::spawn_blocking` or it will panic
+    /// Runs pending migrations or shows warning in debug mode
     fn do_run_migrations(
         &mut self,
         migrations: EmbeddedMigrations,
