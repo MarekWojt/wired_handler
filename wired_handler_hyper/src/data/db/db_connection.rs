@@ -1,8 +1,8 @@
 use std::{error::Error, future::Future};
 
 use diesel_async::{
-    async_connection_wrapper::AsyncConnectionWrapper, pooled_connection::deadpool::Object,
-    AsyncPgConnection,
+    AsyncPgConnection, async_connection_wrapper::AsyncConnectionWrapper,
+    pooled_connection::deadpool::Object,
 };
 use diesel_migrations::{EmbeddedMigrations, MigrationHarness};
 use thiserror::Error;
@@ -42,7 +42,10 @@ pub trait DbConnectionExt: DbConnectionInternalRunMigrationsExt + Send + Sized +
 }
 
 impl DbConnectionInternalRunMigrationsExt for AsyncConnectionWrapper<DbConnection> {
-    /// Runs pending migrations or shows warning in debug mode. If used in an async context, must be called from `tokio::task::spawn_blocking` or it will panic
+    /// Runs pending migrations or shows warning in debug mode. If used in an async context, you should prefer `run_migrations`
+    ///
+    /// # Panics
+    /// Panics when directly called in an async context. Use the async version `run_migrations` instead, or use `spawn_blocking`
     #[cfg(debug_assertions)]
     fn do_run_migrations(
         &mut self,
@@ -58,20 +61,23 @@ impl DbConnectionInternalRunMigrationsExt for AsyncConnectionWrapper<DbConnectio
         Ok(())
     }
 
-    /// Runs pending migrations or shows warning in debug mode. If used in an async context, must be called from `tokio::task::spawn_blocking` or it will panic
+    /// Runs pending migrations or shows warning in debug mode. If used in an async context, you should prefer `run_migrations`
+    ///
+    /// # Panics
+    /// Panics when directly called in an async context. Use the async version `run_migrations` instead, or use `spawn_blocking`
     #[cfg(not(debug_assertions))]
     fn do_run_migrations(
         &mut self,
         migrations: EmbeddedMigrations,
     ) -> Result<(), Box<dyn Error + Send + Sync>> {
-        let has_pending_migration = self.has_pending_migration(migrations)?;
-        if !has_pending_migration {
+        let pending_migrations = self.pending_migrations(migrations)?;
+        if pending_migrations.is_empty() {
             tracing::debug!("no pending migrations");
             return Ok(());
         }
 
         tracing::info!("migrating database");
-        self.run_pending_migrations(migrations)?;
+        self.run_migrations(&pending_migrations)?;
         tracing::info!("migrated database");
 
         Ok(())
