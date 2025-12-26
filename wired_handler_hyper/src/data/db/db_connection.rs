@@ -26,7 +26,7 @@ pub trait DbConnectionInternalRunMigrationsExt {
 }
 
 pub trait DbConnectionExt: DbConnectionInternalRunMigrationsExt + Send + Sized + 'static {
-    /// Runs pending migrations or shows warning in debug mode. For calling in an async context
+    /// Runs pending migrations or shows warning in debug mode
     fn run_migrations(
         mut self,
         migrations: EmbeddedMigrations,
