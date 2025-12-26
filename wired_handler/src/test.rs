@@ -2,10 +2,10 @@
 use std::collections::HashMap;
 
 use crate::{
-    plain::PlainState, Context, ContextBuilder, GetState, Handler, State, StateAsyncGet,
-    StateAsyncGetCloned, StateAsyncGetMut, StateAsyncGetMutOrInsert, StateAsyncInsert,
-    StateAsyncRemoveGetCloned, StateSyncGet, StateSyncGetCloned, StateSyncMutableGetMut,
-    StateSyncMutableGetMutOrInsert, StateSyncMutableInsert, StateSyncMutableRemoveGet,
+    Context, ContextBuilder, GetState, Handler, State, StateAsyncGet, StateAsyncGetCloned,
+    StateAsyncGetMut, StateAsyncGetMutOrInsert, StateAsyncInsert, StateAsyncRemoveGetCloned,
+    StateSyncGet, StateSyncGetCloned, StateSyncMutableGetMut, StateSyncMutableGetMutOrInsert,
+    StateSyncMutableInsert, StateSyncMutableRemoveGet, plain::PlainState,
 };
 use tokio::runtime::Runtime;
 
@@ -180,7 +180,7 @@ async fn end_handler(ctx: &mut EndContext) {
     let request_state_mut = RequestState::get_mut_from_ctx(ctx);
     if let Some(data) = request_state_mut.get_mut::<u8>() {
         *data *= 2;
-    };
+    }
 }
 
 async fn handle(ctx: StartContext) -> EndContext {
