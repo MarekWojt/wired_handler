@@ -1,30 +1,30 @@
 use hyper::body::Bytes;
 use serde::de::DeserializeOwned;
 
-use super::ContextCreateBodyExt;
+use super::ContextBodyCreateExt;
 use crate::{
     data::request_body::{
-        data::{RequestBody, RequestBodyParsed},
+        data::{RequestBody, RequestBodyConsumed},
         error::GetBodyError,
     },
     prelude::*,
     state::{context::WebsocketRequestContext, request_state::RequestState},
 };
 
-impl ContextCreateBodyExt for WebsocketRequestContext {
-    fn is_body_parsed(&self) -> bool {
-        RequestState::get_from_ctx(self).exists::<RequestBodyParsed>()
+impl ContextBodyCreateExt for WebsocketRequestContext {
+    fn is_body_consumed(&self) -> bool {
+        RequestState::get_from_ctx(self).exists::<RequestBodyConsumed>()
     }
 
-    fn mark_body_parsed(&mut self) {
-        RequestState::get_mut_from_ctx(self).insert(RequestBodyParsed);
+    fn mark_body_consumed(&mut self) {
+        RequestState::get_mut_from_ctx(self).insert(RequestBodyConsumed);
     }
 
-    fn body_exists<T: DeserializeOwned + Send + Sync + 'static>(&self) -> bool {
+    fn body_cached_as<T: DeserializeOwned + Send + Sync + 'static>(&self) -> bool {
         RequestState::get_from_ctx(self).exists::<RequestBody<T>>()
     }
 
-    async fn extract_body_bytes(&mut self) -> Result<Bytes, GetBodyError> {
+    async fn take_body_bytes(&mut self) -> Result<Bytes, GetBodyError> {
         use hyper_tungstenite::tungstenite::Message;
 
         let message = self.message_mut();
@@ -37,7 +37,7 @@ impl ContextCreateBodyExt for WebsocketRequestContext {
         Ok(collected_bytes)
     }
 
-    async fn insert_body<T: DeserializeOwned + Send + Sync + 'static>(
+    async fn cache_body<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<(), GetBodyError> {
         let body = self.create_body::<T>().await?;
@@ -48,12 +48,12 @@ impl ContextCreateBodyExt for WebsocketRequestContext {
     }
 }
 
-impl ContextGetBodyExt for WebsocketRequestContext {
+impl ContextBodyGetExt for WebsocketRequestContext {
     async fn body<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<&T, GetBodyError> {
-        if !self.body_exists::<T>() {
-            self.insert_body::<T>().await?;
+        if !self.body_cached_as::<T>() {
+            self.cache_body::<T>().await?;
         }
 
         Ok(
@@ -67,8 +67,8 @@ impl ContextGetBodyExt for WebsocketRequestContext {
     async fn body_mut<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<&mut T, GetBodyError> {
-        if !self.body_exists::<T>() {
-            self.insert_body::<T>().await?;
+        if !self.body_cached_as::<T>() {
+            self.cache_body::<T>().await?;
         }
 
         Ok(
@@ -82,7 +82,7 @@ impl ContextGetBodyExt for WebsocketRequestContext {
     async fn remove_body<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<T, GetBodyError> {
-        if self.body_exists::<T>() {
+        if self.body_cached_as::<T>() {
             return Ok(RequestState::get_mut_from_ctx(self)
                 .remove_get::<RequestBody<T>>()
                 .unwrap()

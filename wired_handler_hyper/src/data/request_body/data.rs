@@ -4,9 +4,9 @@ use serde::de::DeserializeOwned;
 #[derive(Debug, Clone)]
 pub(super) struct RequestBody<T: DeserializeOwned>(T);
 
-/// Marker struct, inserted after body generation
+/// Marker struct, inserted after body consumption
 #[derive(Debug)]
-pub(super) struct RequestBodyParsed;
+pub(super) struct RequestBodyConsumed;
 
 impl<T: DeserializeOwned> RequestBody<T> {
     pub fn new(data: T) -> Self {

@@ -15,8 +15,8 @@ pub enum GetBodyError {
     #[error("invalid frame data")]
     FailedFrame,
     /// Body has already been parsed into a different type or removed
-    #[error("body has already been parsed into a different type or has been removed, it can only be parsed once since the original data is consumed")]
-    AlreadyParsed,
+    #[error("body has already been consumed or been removed")]
+    BodyUnavailable,
     #[error("invalid message type")]
     InvalidMessageType,
 }
@@ -31,8 +31,8 @@ impl From<GetBodyError> for HttpError {
                 Self::internal_server_error("Hyper error handling body")
             }
             GetBodyError::FailedFrame => Self::bad_request("a frame couldn't be converted"),
-            GetBodyError::AlreadyParsed => {
-                Self::internal_server_error("body has already been parsed")
+            GetBodyError::BodyUnavailable => {
+                Self::internal_server_error("body has already been consumed or been removed")
             }
             GetBodyError::InvalidMessageType => {
                 Self::internal_server_error("internal server error")

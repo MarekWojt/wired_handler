@@ -4,39 +4,39 @@ use http_body_util::BodyExt;
 use hyper::body::Bytes;
 use serde::de::DeserializeOwned;
 
-use super::ContextCreateBodyExt;
+use super::ContextBodyCreateExt;
 use crate::{
     data::request_body::{
-        data::{RequestBody, RequestBodyParsed},
+        data::{RequestBody, RequestBodyConsumed},
         error::GetBodyError,
     },
     prelude::*,
     state::{context::HttpRequestContext, request_state::RequestState},
 };
 
-impl ContextCreateBodyExt for HttpRequestContext {
-    fn is_body_parsed(&self) -> bool {
-        RequestState::get_from_ctx(self).exists::<RequestBodyParsed>()
+impl ContextBodyCreateExt for HttpRequestContext {
+    fn is_body_consumed(&self) -> bool {
+        RequestState::get_from_ctx(self).exists::<RequestBodyConsumed>()
     }
 
-    fn mark_body_parsed(&mut self) {
-        RequestState::get_mut_from_ctx(self).insert(RequestBodyParsed);
+    fn mark_body_consumed(&mut self) {
+        RequestState::get_mut_from_ctx(self).insert(RequestBodyConsumed);
     }
 
-    fn body_exists<T: DeserializeOwned + Send + Sync + 'static>(&self) -> bool {
+    fn body_cached_as<T: DeserializeOwned + Send + Sync + 'static>(&self) -> bool {
         RequestState::get_from_ctx(self).exists::<RequestBody<T>>()
     }
 
     // Different implementation needed because we can't produce a Request<Incoming>
     #[cfg(test)]
-    async fn extract_body_bytes(&mut self) -> Result<Bytes, GetBodyError> {
+    async fn take_body_bytes(&mut self) -> Result<Bytes, GetBodyError> {
         Ok(RequestState::get_mut_from_ctx(self)
             .remove_get::<Bytes>()
             .unwrap_or_else(Bytes::new))
     }
 
     #[cfg(not(test))]
-    async fn extract_body_bytes(&mut self) -> Result<Bytes, GetBodyError> {
+    async fn take_body_bytes(&mut self) -> Result<Bytes, GetBodyError> {
         let request = self.request_mut();
         let incoming = request.body_mut();
         let mut collected_bytes = Vec::new();
@@ -50,7 +50,7 @@ impl ContextCreateBodyExt for HttpRequestContext {
         Ok(collected_bytes.into())
     }
 
-    async fn insert_body<T: DeserializeOwned + Send + Sync + 'static>(
+    async fn cache_body<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<(), GetBodyError> {
         let body = self.create_body::<T>().await?;
@@ -61,12 +61,12 @@ impl ContextCreateBodyExt for HttpRequestContext {
     }
 }
 
-impl ContextGetBodyExt for HttpRequestContext {
+impl ContextBodyGetExt for HttpRequestContext {
     async fn body<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<&T, GetBodyError> {
-        if !self.body_exists::<T>() {
-            self.insert_body::<T>().await?;
+        if !self.body_cached_as::<T>() {
+            self.cache_body::<T>().await?;
         }
 
         Ok(
@@ -80,8 +80,8 @@ impl ContextGetBodyExt for HttpRequestContext {
     async fn body_mut<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<&mut T, GetBodyError> {
-        if !self.body_exists::<T>() {
-            self.insert_body::<T>().await?;
+        if !self.body_cached_as::<T>() {
+            self.cache_body::<T>().await?;
         }
 
         Ok(
@@ -95,7 +95,7 @@ impl ContextGetBodyExt for HttpRequestContext {
     async fn remove_body<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<T, GetBodyError> {
-        if self.body_exists::<T>() {
+        if self.body_cached_as::<T>() {
             return Ok(RequestState::get_mut_from_ctx(self)
                 .remove_get::<RequestBody<T>>()
                 .unwrap()

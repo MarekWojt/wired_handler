@@ -63,9 +63,11 @@ fn do_set_global_max_parallel_sends(
 
 /// Sets the count of maximum parallel websocket message sends, can only be done once
 ///
+/// Capped at `10,000`, if you need more, use the `"high-max-parallel-sends"` feature
+///
+/// # Errors
 /// Returns an `Err` containing the failed value if the value already set
 ///
-/// Capped at `10,000`, if you need more, use the `"high-max-parallel-sends"` feature
 #[cfg(not(feature = "high-max-parallel-sends"))]
 pub fn set_global_max_parallel_sends(
     max_parallel_sends: usize,
@@ -79,9 +81,11 @@ pub fn set_global_max_parallel_sends(
 
 /// Sets the count of maximum parallel websocket message sends, can only be done once
 ///
+/// Capped at `10,000`, if you need more, use the `"high-max-parallel-sends"` feature
+///
+/// # Errors
 /// Returns an `Err` containing the failed value if the value already set
 ///
-/// **Uncapped, use with care**
 #[cfg(feature = "high-max-parallel-sends")]
 pub fn set_global_max_parallel_sends(
     max_parallel_sends: usize,

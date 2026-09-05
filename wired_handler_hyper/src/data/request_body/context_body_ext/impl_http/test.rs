@@ -47,13 +47,13 @@ async fn run_test() {
         assert_eq!(context.body_mut::<Person>().await.unwrap(), &person);
         assert!(matches!(
             context.body::<UnusedType>().await,
-            Err(GetBodyError::AlreadyParsed)
+            Err(GetBodyError::BodyUnavailable)
         ));
         assert_eq!(context.body::<Person>().await.unwrap(), &person);
         assert_eq!(context.remove_body::<Person>().await.unwrap(), person);
         assert!(matches!(
             context.body::<Person>().await,
-            Err(GetBodyError::AlreadyParsed)
+            Err(GetBodyError::BodyUnavailable)
         ));
     }
 }

@@ -10,69 +10,80 @@ mod impl_http;
 mod impl_websocket;
 
 /// Helper trait for body handling
-pub trait ContextCreateBodyExt {
-    /// Whether a body of type `T` has been parsed
-    fn body_exists<T: DeserializeOwned + Send + Sync + 'static>(&self) -> bool;
+pub trait ContextBodyCreateExt {
+    /// Whether a successfully parsed body of type `T` is cached
+    fn body_cached_as<T: DeserializeOwned + Send + Sync + 'static>(&self) -> bool;
 
     /// Whether the body has been parsed
-    fn is_body_parsed(&self) -> bool;
+    fn is_body_consumed(&self) -> bool;
 
     /// Marks that the request's body has been parsed
-    fn mark_body_parsed(&mut self);
+    fn mark_body_consumed(&mut self);
 
     /// Returns all bytes of the body data, removing them from the request
-    fn extract_body_bytes(&mut self) -> impl Future<Output = Result<Bytes, GetBodyError>>;
+    fn take_body_bytes(&mut self) -> impl Future<Output = Result<Bytes, GetBodyError>>;
 
-    /// Creates the body from the context
+    /// Creates the body from the context.
+    ///
+    /// Consumes the request body. The body can only be created once.
+    ///
+    /// # Errors
+    /// Errors if creating the body fails
     fn create_body<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> impl Future<Output = Result<T, GetBodyError>> {
         async {
-            let incoming_bytes = self.extract_body_bytes().await?;
+            let incoming_bytes = self.take_body_bytes().await?;
 
-            if incoming_bytes.is_empty() && self.is_body_parsed() {
-                return Err(GetBodyError::AlreadyParsed);
+            if incoming_bytes.is_empty() && self.is_body_consumed() {
+                return Err(GetBodyError::BodyUnavailable);
             }
 
-            self.mark_body_parsed();
+            self.mark_body_consumed();
 
             self.decode_data(&incoming_bytes)
         }
     }
 
     /// Turns the bytes into `T`
+    ///
+    /// # Errors
+    /// Errors if decoding fails, returning an error of the type of the decoding (e.g. `GetBodyError::Json` for JSON)
     fn decode_data<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
         bytes_to_decode: &[u8],
     ) -> Result<T, GetBodyError> {
-        Ok(serde_json::from_slice(bytes_to_decode)?)
+        Ok(
+            #[cfg(feature = "json")]
+            serde_json::from_slice(bytes_to_decode)?,
+        )
     }
 
     /// Inserts the body into the context
-    fn insert_body<T: DeserializeOwned + Send + Sync + 'static>(
+    fn cache_body<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> impl Future<Output = Result<(), GetBodyError>>;
 }
 
 /// Get a decoded body from an `HttpRequestContext`
-pub trait ContextGetBodyExt: ContextCreateBodyExt {
-    /// Parses and returns a reference to the body. The result is cached.
+pub trait ContextBodyGetExt: ContextBodyCreateExt {
+    /// Parses and returns a reference to the body of the request. The result is cached.
     ///
     /// The parsing can only be done once. Trying to get a different body type from the same request will result in an error
     fn body<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> impl Future<Output = Result<&T, GetBodyError>>;
 
-    /// Parses and returns a mutable reference to the body. The result is cached.
+    /// Parses and returns a mutable reference to the body of the request. The result is cached.
     ///
     /// The parsing can only be done once. Trying to get a different body type from the same request will result in an error
     fn body_mut<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> impl Future<Output = Result<&mut T, GetBodyError>>;
 
-    /// Parses and returns the body.
+    /// Returns the body of the request, removing it from the context.
     ///
-    /// *Use with caution, the body cannot be accessed after removing it!*
+    /// *Use with care, the body cannot be accessed after removing it!*
     fn remove_body<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> impl Future<Output = Result<T, GetBodyError>>;

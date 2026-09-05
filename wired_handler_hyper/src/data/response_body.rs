@@ -31,6 +31,9 @@ impl ResponseBodyExt for ResponseBody {
 /// Lets you add a parsed body to a request builder
 pub trait ResponseBuilderParsedBodyExt {
     /// Creates a `Response` by applying a `ParsedBody`
+    ///
+    /// # Errors
+    /// Errors if creating the response fails
     fn parsed_body(self, body: ParsedBody) -> Result<Response, http::Error>;
 }
 
@@ -68,11 +71,15 @@ pub struct ParsedBody {
 /// For parsing a body from data
 pub trait CtxParseBodyExt {
     /// Parses `data` into a `ParsedBody`
+    ///
+    /// # Errors
+    /// Errors if parsing fails
     fn parse_body<T: Serialize>(&self, data: T) -> Result<ParsedBody, ParseBodyError>;
 }
 
 impl CtxParseBodyExt for HttpRequestContext {
     fn parse_body<T: Serialize>(&self, data: T) -> Result<ParsedBody, ParseBodyError> {
+        #[cfg(feature = "json")]
         let parsed_data = serde_json::to_vec(&data)?;
         Ok(ParsedBody {
             response_body: ResponseBody::from_bytes(parsed_data),

@@ -6,7 +6,7 @@ pub use crate::{
         path::ContextGetPathExt,
         query_params::ContextGetQueryParamsExt,
         request::ContextGetRequestExt,
-        request_body::ContextGetBodyExt,
+        request_body::ContextBodyGetExt,
         response::{ContextReturnResponseExt, ResponseBuilderExt},
         response_body::{CtxParseBodyExt, ResponseBodyExt, ResponseBuilderParsedBodyExt},
     },
