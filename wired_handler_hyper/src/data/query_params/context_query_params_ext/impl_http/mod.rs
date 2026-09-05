@@ -6,12 +6,12 @@ use crate::{
     state::{context::HttpRequestContext, request_state::RequestState},
 };
 
-use super::ContextCreateQueryParamsExt;
+use super::ContextQueryParamsCreateExt;
 
 #[cfg(test)]
 mod test;
 
-impl ContextCreateQueryParamsExt for HttpRequestContext {
+impl ContextQueryParamsCreateExt for HttpRequestContext {
     #[cfg(not(test))]
     fn raw_query_params(&self) -> Option<&str> {
         self.request().uri().query()
@@ -27,6 +27,10 @@ impl ContextCreateQueryParamsExt for HttpRequestContext {
             .map(String::as_str)
     }
 
+    fn query_params_cached_as<T: DeserializeOwned + Send + Sync + 'static>(&self) -> bool {
+        RequestState::get_from_ctx(self).exists::<QueryParams<T>>()
+    }
+
     fn parse_query_params<T: DeserializeOwned + Send + Sync + 'static>(
         &self,
     ) -> Result<Option<T>, GetQueryParamsError> {
@@ -38,7 +42,7 @@ impl ContextCreateQueryParamsExt for HttpRequestContext {
         Ok(Some(result))
     }
 
-    fn insert_query_params<T: DeserializeOwned + Send + Sync + 'static>(
+    fn cache_query_params<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<(), GetQueryParamsError> {
         let data = self.parse_query_params::<T>()?;
@@ -49,11 +53,13 @@ impl ContextCreateQueryParamsExt for HttpRequestContext {
     }
 }
 
-impl ContextGetQueryParamsExt for HttpRequestContext {
+impl ContextQueryParamsGetExt for HttpRequestContext {
     fn query_params<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<Option<&T>, GetQueryParamsError> {
-        self.insert_query_params::<T>()?;
+        if !self.query_params_cached_as::<T>() {
+            self.cache_query_params::<T>()?;
+        }
 
         Ok(RequestState::get_from_ctx(self)
             .get::<QueryParams<T>>()
@@ -64,7 +70,9 @@ impl ContextGetQueryParamsExt for HttpRequestContext {
     fn query_params_mut<T: DeserializeOwned + Send + Sync + 'static>(
         &mut self,
     ) -> Result<Option<&mut T>, GetQueryParamsError> {
-        self.insert_query_params::<T>()?;
+        if !self.query_params_cached_as::<T>() {
+            self.cache_query_params::<T>()?;
+        }
 
         Ok(RequestState::get_mut_from_ctx(self)
             .get_mut::<QueryParams<T>>()

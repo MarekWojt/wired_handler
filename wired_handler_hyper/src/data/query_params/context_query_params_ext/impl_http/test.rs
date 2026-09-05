@@ -113,4 +113,31 @@ fn test() {
             .unwrap()
             .is_none());
     }
+
+    {
+        let params = TestParams {
+            name: "Test".to_string(),
+            groups: vec!["group1".to_string()],
+        };
+        let parsed_params = serde_html_form::to_string(params).unwrap();
+
+        let mut request_state = RequestState::default();
+        request_state.insert(parsed_params);
+        let mut context = HttpRequestContext::from_states(
+            GlobalState::default(),
+            SessionState::default(),
+            request_state,
+        );
+
+        context
+            .query_params_mut::<TestParams>()
+            .unwrap()
+            .unwrap()
+            .name = "Mutated".to_string();
+
+        assert_eq!(
+            context.query_params::<TestParams>().unwrap().unwrap().name,
+            "Mutated"
+        );
+    }
 }

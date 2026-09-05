@@ -4,7 +4,7 @@ pub use crate::{
     actions,
     data::{
         path::ContextGetPathExt,
-        query_params::ContextGetQueryParamsExt,
+        query_params::ContextQueryParamsGetExt,
         request::ContextGetRequestExt,
         request_body::ContextBodyGetExt,
         response::{ContextReturnResponseExt, ResponseBuilderExt},
