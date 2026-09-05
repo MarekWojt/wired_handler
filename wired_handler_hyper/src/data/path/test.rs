@@ -19,6 +19,7 @@ fn context_with_path(path: &str) -> HttpRequestContext {
 }
 
 #[test]
+#[allow(clippy::too_many_lines)]
 fn test() {
     // forward
     {

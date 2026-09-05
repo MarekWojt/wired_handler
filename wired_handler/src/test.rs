@@ -22,6 +22,7 @@ impl SessionStorage {
         self.0.insert(session_id, session_state);
     }
 
+    #[allow(clippy::trivially_copy_pass_by_ref)]
     fn get(&self, session_id: &SessionId) -> Option<&SessionState> {
         self.0.get(session_id)
     }

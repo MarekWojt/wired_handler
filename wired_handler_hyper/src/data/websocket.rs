@@ -56,23 +56,27 @@ pub trait ContextWebsocketExt {
 
 impl ContextWebsocketExt for HttpRequestContext {
     /// Handles upgrading to websocket, using `handler_fn` as its handler. Inserts a `Response`
-    async fn next_websocket<
+    fn next_websocket<
         Fn: Send + 'static + for<'a> AsyncFn1<&'a mut WebsocketRequestContext, Output = ()>,
     >(
         &mut self,
         handler_fn: Fn,
-    ) -> Result<ControlFlow<()>, HttpError>
+    ) -> impl Future<Output = Result<ControlFlow<()>, HttpError>>
     where
         for<'a> <Fn as AsyncFn1<&'a mut WebsocketRequestContext>>::OutputFuture: Send,
     {
+        use std::future::ready;
         // return error if request isn't websocket request
         if !hyper_tungstenite::is_upgrade_request(self.request()) {
-            return Err(HttpError::websocket_upgrade_required());
+            return ready(Err(HttpError::websocket_upgrade_required()));
         }
 
         // upgrade to websocket
-        let (response, websocket) = hyper_tungstenite::upgrade(self.request_mut(), None)
-            .map_err(|err| HttpError::new(StatusCode::BAD_REQUEST, err.to_string()))?;
+        let (response, websocket) = match hyper_tungstenite::upgrade(self.request_mut(), None)
+            .map_err(|err| HttpError::new(StatusCode::BAD_REQUEST, err.to_string())) {
+                Ok(data) => data,
+                Err(err) => return ready(Err(err))
+            };
 
         // clone (semi-)global states
         let session_state = SessionState::get_from_ctx(self).clone();
@@ -186,6 +190,6 @@ impl ContextWebsocketExt for HttpRequestContext {
             )
         };
 
-        self.next(converted_response)
+        ready(self.next(converted_response))
     }
 }

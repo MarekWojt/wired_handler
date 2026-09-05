@@ -26,6 +26,7 @@ struct Person {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct UnusedType;
 
+#[allow(clippy::too_many_lines)]
 async fn run_test() {
     let global_state = GlobalState::default();
     let session_state = SessionState::default();

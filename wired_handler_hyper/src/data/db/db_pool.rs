@@ -11,6 +11,10 @@ use crate::data::config::DbConfig;
 pub type DbPool = Pool<AsyncPgConnection>;
 
 pub trait DbPoolExt: Sized {
+    /// Creates a new database pool from config
+    /// 
+    /// # Errors
+    /// Returns a `BuildError` if building the pool fails
     fn new(db_config: &DbConfig) -> Result<Self, deadpool::BuildError>;
 }
 

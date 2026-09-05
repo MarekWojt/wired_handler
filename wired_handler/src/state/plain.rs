@@ -13,6 +13,7 @@ pub struct PlainState(FxHashMap<TypeId, Box<dyn Any + Send + Sync>>);
 
 impl PlainState {
     /// Creates a new `PlainState`
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }

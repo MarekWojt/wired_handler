@@ -29,10 +29,10 @@ impl ContextBodyCreateExt for HttpRequestContext {
 
     // Different implementation needed because we can't produce a Request<Incoming>
     #[cfg(test)]
-    async fn take_body_bytes(&mut self) -> Result<Bytes, GetBodyError> {
-        Ok(RequestState::get_mut_from_ctx(self)
+    fn take_body_bytes(&mut self) -> impl Future<Output = Result<Bytes, GetBodyError>> {
+        std::future::ready(Ok(RequestState::get_mut_from_ctx(self)
             .remove_get::<Bytes>()
-            .unwrap_or_else(Bytes::new))
+            .unwrap_or_else(Bytes::new)))
     }
 
     #[cfg(not(test))]

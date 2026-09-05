@@ -20,22 +20,34 @@ impl ResponseBuilderExt for Response {}
 /// Returns helpers for `HttpRequestContext`
 pub trait ContextReturnResponseExt {
     /// Continue to run the next handler
+    /// 
+    /// # Errors
+    /// Can return an `HTTPError` if inserting the `Response` goes wrong
     #[must_use = "Must be returned to be effective"]
     fn next(&mut self, response: Response) -> Result<ControlFlow<()>, HttpError>;
 
-    /// Continue to run the next handler without returning a `Response`.
-    /// **Only use if you know this isn't the last handler**
+    /// Continue to run the next handler without returning a `Response`.\
+    /// **Only use if you know this isn't the last handler or a `Response` is already inserted**
+    /// 
+    /// # Errors
+    /// Should not actually return an error if implemented correctly
     #[must_use = "Must be returned to be effective"]
     fn next_no_response(&self) -> Result<ControlFlow<()>, HttpError> {
         Ok(ControlFlow::Continue(()))
     }
 
     /// Stops the execution, not running the next handler
+    /// 
+    /// # Errors
+    /// Can return an `HTTPError` if inserting the `Response` goes wrong
     #[must_use = "Must be returned to be effective"]
     fn stop(&mut self, response: Response) -> Result<ControlFlow<()>, HttpError>;
 
     /// Stops the execution, not running the next handler, without returning a `Response`.
     /// **Only use if you know a `Response` is already inserted**
+    /// 
+    /// # Errors
+    /// Should not actually return an error if implemented correctly
     #[must_use = "Must be returned to be effective"]
     fn stop_no_response(&self) -> Result<ControlFlow<()>, HttpError> {
         Ok(ControlFlow::Break(()))

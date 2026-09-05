@@ -1,3 +1,7 @@
+#![warn(missing_debug_implementations)]
+#![warn(clippy::pedantic)]
+#![allow(clippy::struct_field_names)]
+
 mod context;
 mod handler;
 /// Exports all important traits, use as a header when using this crate

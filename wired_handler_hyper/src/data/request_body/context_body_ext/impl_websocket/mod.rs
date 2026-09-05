@@ -24,17 +24,18 @@ impl ContextBodyCreateExt for WebsocketRequestContext {
         RequestState::get_from_ctx(self).exists::<RequestBody<T>>()
     }
 
-    async fn take_body_bytes(&mut self) -> Result<Bytes, GetBodyError> {
+    fn take_body_bytes(&mut self) -> impl Future<Output = Result<Bytes, GetBodyError>> {
+        use std::future::ready;
         use hyper_tungstenite::tungstenite::Message;
 
         let message = self.message_mut();
         let collected_bytes = match message {
             Message::Text(data) => Bytes::from(std::mem::take(data)),
             Message::Binary(data) => std::mem::take(data),
-            _ => return Err(GetBodyError::InvalidMessageType),
+            _ => return ready(Err(GetBodyError::InvalidMessageType)),
         };
 
-        Ok(collected_bytes)
+        ready(Ok(collected_bytes))
     }
 
     async fn cache_body<T: DeserializeOwned + Send + Sync + 'static>(

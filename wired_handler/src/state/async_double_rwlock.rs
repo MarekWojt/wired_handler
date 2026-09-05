@@ -22,6 +22,7 @@ pub struct AsyncDoubleRwLockState(Arc<RwLock<FxHashMap<TypeId, SyncedAny>>>);
 
 impl AsyncDoubleRwLockState {
     /// Creates a new `AsyncDoubleRwLockState`
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
@@ -33,6 +34,7 @@ impl AsyncDoubleRwLockState {
 
         let guard = data.write_owned().await;
 
+        #[allow(clippy::redundant_closure_for_method_calls)]
         OwnedRwLockWriteGuard::try_map(guard, |data| data.downcast_mut::<T>()).ok()
     }
 }
@@ -43,6 +45,7 @@ impl StateAsyncGet for AsyncDoubleRwLockState {
 
         let guard = data.read_owned().await;
 
+        #[allow(clippy::redundant_closure_for_method_calls)]
         OwnedRwLockReadGuard::try_map(guard, |data| data.downcast_ref::<T>()).ok()
     }
 
