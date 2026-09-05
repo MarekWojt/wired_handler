@@ -37,7 +37,7 @@ impl HttpErrorWebsocketExt for HttpError {
             Ok(response) => response,
             Err(err) => return err.into(),
         };
-        #[allow(deprecated)]
+        #[expect(deprecated)]
         Self::from_response(response)
     }
 }

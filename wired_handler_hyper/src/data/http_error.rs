@@ -21,7 +21,7 @@ impl From<HttpError> for Response {
 }
 
 impl HttpError {
-    #[allow(clippy::missing_panics_doc)]
+    #[expect(clippy::missing_panics_doc)]
     /// Creates a new `HttpError` with the respective `StatusCode`
     pub fn new(status: StatusCode, message: impl Into<Bytes>) -> Self {
         Self(

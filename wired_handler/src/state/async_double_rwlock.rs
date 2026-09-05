@@ -34,7 +34,7 @@ impl AsyncDoubleRwLockState {
 
         let guard = data.write_owned().await;
 
-        #[allow(clippy::redundant_closure_for_method_calls)]
+        #[expect(clippy::redundant_closure_for_method_calls)]
         OwnedRwLockWriteGuard::try_map(guard, |data| data.downcast_mut::<T>()).ok()
     }
 }
@@ -45,7 +45,7 @@ impl StateAsyncGet for AsyncDoubleRwLockState {
 
         let guard = data.read_owned().await;
 
-        #[allow(clippy::redundant_closure_for_method_calls)]
+        #[expect(clippy::redundant_closure_for_method_calls)]
         OwnedRwLockReadGuard::try_map(guard, |data| data.downcast_ref::<T>()).ok()
     }
 

@@ -16,7 +16,7 @@ pub trait ResponseBuilderExt {
 
 impl ResponseBuilderExt for Response {}
 
-#[allow(clippy::result_large_err)]
+#[expect(clippy::result_large_err)]
 /// Returns helpers for `HttpRequestContext`
 pub trait ContextResponseReturnExt {
     /// Continue to run the next handler
