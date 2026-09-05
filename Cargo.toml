@@ -13,7 +13,7 @@ version = "0.12.0"
 [workspace.dependencies]
 wired_handler = { path = "./wired_handler", version = "0.12.0" }
 wired_handler_derive = { path = "./wired_handler_derive", version = "0.12.0" }
-tokio = "1.53.1"
+tokio = { version = "1.53.1", features = ["net"] }
 syn = "3.0.5"
 quote = "1.0.47"
 thiserror = "2.0.20"
