@@ -13,12 +13,12 @@ use crate::{prelude::*, state::connection_state::ConnectionState};
 pub type MessageSink = SplitSink<WebSocketStream<TokioIo<Upgraded>>, Message>;
 
 /// For getting the message sink of a connection
-pub trait GetMessageSinkExt {
+pub trait MessageSinkGetExt {
     fn message_sink(&self) -> impl Future<Output = impl Deref<Target = MessageSink>>;
     fn message_sink_mut(&self) -> impl Future<Output = impl DerefMut<Target = MessageSink>>;
 }
 
-impl GetMessageSinkExt for ConnectionState {
+impl MessageSinkGetExt for ConnectionState {
     async fn message_sink(&self) -> impl Deref<Target = MessageSink> {
         self.get().await.expect("ConnectionState must have Sink")
     }

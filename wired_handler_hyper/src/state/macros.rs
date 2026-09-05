@@ -16,7 +16,7 @@ macro_rules! routes {
         $($path:pat => $handler:expr),*$(,)?
     } => {
         {
-            use $crate::prelude::{ContextGetPathExt, ContextGetRequestExt};
+            use $crate::prelude::{ContextPathGetExt, ContextRequestGetExt};
             match $ctx.remaining_path_mut().next().as_deref() {
                 $(
                     $path => $handler,
@@ -38,7 +38,7 @@ macro_rules! actions {
         $($methods:pat => $handler:expr),*$(,)?
     } => {
         {
-            use $crate::prelude::{ContextGetRequestExt, ContextReturnResponseExt};
+            use $crate::prelude::{ContextRequestGetExt, ContextResponseReturnExt};
             match $ctx.request().method() {
                 $(
                     &$methods => $handler,

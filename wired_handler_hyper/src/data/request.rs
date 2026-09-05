@@ -8,12 +8,12 @@ use crate::{
 pub type Request = hyper::Request<Incoming>;
 
 /// Get the request from an `HttpRequestContext`
-pub trait ContextGetRequestExt {
+pub trait ContextRequestGetExt {
     fn request(&self) -> &Request;
     fn request_mut(&mut self) -> &mut Request;
 }
 
-impl ContextGetRequestExt for HttpRequestContext {
+impl ContextRequestGetExt for HttpRequestContext {
     fn request(&self) -> &Request {
         RequestState::get_from_ctx(self)
             .get::<Request>()

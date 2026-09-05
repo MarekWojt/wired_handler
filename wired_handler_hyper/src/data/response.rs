@@ -18,7 +18,7 @@ impl ResponseBuilderExt for Response {}
 
 #[allow(clippy::result_large_err)]
 /// Returns helpers for `HttpRequestContext`
-pub trait ContextReturnResponseExt {
+pub trait ContextResponseReturnExt {
     /// Continue to run the next handler
     /// 
     /// # Errors
@@ -54,7 +54,7 @@ pub trait ContextReturnResponseExt {
     }
 }
 
-impl ContextReturnResponseExt for HttpRequestContext {
+impl ContextResponseReturnExt for HttpRequestContext {
     fn next(&mut self, response: Response) -> Result<ControlFlow<()>, HttpError> {
         RequestState::get_mut_from_ctx(self).insert(response);
         Ok(ControlFlow::Continue(()))

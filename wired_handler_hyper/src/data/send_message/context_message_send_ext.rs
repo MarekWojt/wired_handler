@@ -9,7 +9,7 @@ use hyper_tungstenite::tungstenite::Message;
 use tokio::sync::Semaphore;
 use wired_handler::{Context, GetState};
 
-use super::{BatchSendError, SendMessageExt, SingleSendError};
+use super::{BatchSendError, MessageSendExt, SingleSendError};
 use crate::{
     data::{
         connection_storage::ConnectionStorage,
@@ -23,7 +23,7 @@ static GLOBAL_SEND_SEMAPHORE: LazyLock<Semaphore> =
     LazyLock::new(|| Semaphore::new(global_max_parallel_sends()));
 
 /// For sending messages to a context
-pub trait ContextSendMessageExt {
+pub trait ContextMessageSendExt {
     /// Sends a Message to all connections of the current session
     ///
     /// Returns the count of connections the message was sent to, or an error consisting of a list of all errors
@@ -32,7 +32,7 @@ pub trait ContextSendMessageExt {
 }
 
 // impl for any `Context` that contains a `SessionState`
-impl<T: Context> ContextSendMessageExt for T
+impl<T: Context> ContextMessageSendExt for T
 where
     SessionState: GetState<T>,
 {

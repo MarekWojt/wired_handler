@@ -94,7 +94,7 @@ pub enum RunHttpServerError {
     Io(#[from] std::io::Error),
 }
 
-pub trait RunHttpServerExt {
+pub trait HttpServerRunExt {
     /// Runs the HTTP server with the given `bind_config`
     fn run_http_server(
         self,
@@ -102,7 +102,7 @@ pub trait RunHttpServerExt {
     ) -> impl Future<Output = Result<(), RunHttpServerError>>;
 }
 
-impl<F: Future<Output = HttpRequestContext> + 'static + Send> RunHttpServerExt
+impl<F: Future<Output = HttpRequestContext> + 'static + Send> HttpServerRunExt
     for Handler<SessionlessRequestContext, HttpRequestContext, GlobalState, F>
 {
     async fn run_http_server(self, bind_config: BindConfig) -> Result<(), RunHttpServerError> {

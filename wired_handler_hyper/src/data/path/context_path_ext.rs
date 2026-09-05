@@ -6,12 +6,12 @@ use crate::{
 use super::RemainingPath;
 
 /// For creating the `RemainingPath`
-pub trait ContextCreateRemainingPathExt {
+pub trait ContextRemainingPathCreateExt {
     /// Ensure a remaining path is in the state
     fn create_remaining_path(&mut self);
 }
 
-impl ContextCreateRemainingPathExt for HttpRequestContext {
+impl ContextRemainingPathCreateExt for HttpRequestContext {
     fn create_remaining_path(&mut self) {
         if RequestState::get_from_ctx(self).exists::<RemainingPath>() {
             return;
@@ -29,7 +29,7 @@ impl ContextCreateRemainingPathExt for HttpRequestContext {
 }
 
 /// For retrieving the request path
-pub trait ContextGetPathExt {
+pub trait ContextPathGetExt {
     /// Returns the full path of the request (starting at `"/"` and ending before `"&"`)
     fn path(&self) -> &str;
     /// Returns a reference to the `RemainingPath`. Created if it doesn't exist
@@ -38,7 +38,7 @@ pub trait ContextGetPathExt {
     fn remaining_path_mut(&mut self) -> &mut RemainingPath;
 }
 
-impl ContextGetPathExt for HttpRequestContext {
+impl ContextPathGetExt for HttpRequestContext {
     // Different implementation needed because we can't produce a Request<Incoming>
     #[cfg(test)]
     fn path(&self) -> &str {

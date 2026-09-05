@@ -4,14 +4,14 @@ use futures::SinkExt;
 use hyper_tungstenite::tungstenite::Message;
 use tokio::time::timeout;
 
-use super::GetMessageSinkExt;
+use super::MessageSinkGetExt;
 use crate::{
     data::send_message::{SendMessageError, global_send_timeout},
     state::connection_state::ConnectionState,
 };
 
 /// For sending messages to a connection
-pub trait SendMessageExt: GetMessageSinkExt {
+pub trait MessageSendExt: MessageSinkGetExt {
     /// Sends a single Message
     fn send_message(&self, message: Message) -> impl Future<Output = Result<(), SendMessageError>> {
         async {
@@ -25,4 +25,4 @@ pub trait SendMessageExt: GetMessageSinkExt {
     }
 }
 
-impl SendMessageExt for ConnectionState {}
+impl MessageSendExt for ConnectionState {}

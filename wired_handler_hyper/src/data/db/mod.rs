@@ -29,12 +29,12 @@ mod db_connection;
 mod db_pool;
 
 /// For getting a database connection from the pool
-pub trait ContextGetDbExt {
+pub trait ContextDbGetExt {
     /// Gets a database connection from the pool
     fn db(&self) -> impl Future<Output = Result<DbConnection, PoolError>>;
 }
 
-impl ContextGetDbExt for HttpRequestContext {
+impl ContextDbGetExt for HttpRequestContext {
     async fn db(&self) -> Result<DbConnection, PoolError> {
         let db_pool = GlobalState::get_from_ctx(self)
             .get_cloned::<DbPool>()
@@ -57,7 +57,7 @@ pub enum LoadDbError {
     MigrationError(#[from] MigrationError),
 }
 
-pub trait LoadDbExt {
+pub trait DbLoadExt {
     /// Loads the database and applies migrations
     ///
     /// In debug mode, only generates a warning if there are pending migrations
@@ -68,7 +68,7 @@ pub trait LoadDbExt {
     ) -> impl Future<Output = Result<(), LoadDbError>>;
 }
 
-impl<F: Future<Output = HttpRequestContext> + 'static + Send> LoadDbExt
+impl<F: Future<Output = HttpRequestContext> + 'static + Send> DbLoadExt
     for Handler<SessionlessRequestContext, HttpRequestContext, GlobalState, F>
 {
     async fn load_db(

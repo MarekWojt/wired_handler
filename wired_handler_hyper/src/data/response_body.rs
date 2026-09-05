@@ -50,12 +50,12 @@ impl ResponseBuilderParsedBodyExt for http::response::Builder {
 /// When parsing the body goes wrong
 #[derive(Debug, Error)]
 #[error("{0}")]
-pub enum ParseBodyError {
+pub enum ParseResponseBodyError {
     #[cfg(feature = "json")]
     Json(#[from] serde_json::Error),
 }
-impl From<ParseBodyError> for HttpError {
-    fn from(value: ParseBodyError) -> Self {
+impl From<ParseResponseBodyError> for HttpError {
+    fn from(value: ParseResponseBodyError) -> Self {
         tracing::debug!("parse error: {value}");
         Self::internal_server_error("failed to parse response body")
     }
@@ -69,16 +69,22 @@ pub struct ParsedBody {
 }
 
 /// For parsing a body from data
-pub trait CtxParseBodyExt {
+pub trait ContextResponseBodyParseExt {
     /// Parses `data` into a `ParsedBody`
     ///
     /// # Errors
     /// Errors if parsing fails
-    fn parse_body<T: Serialize>(&self, data: T) -> Result<ParsedBody, ParseBodyError>;
+    fn parse_response_body<T: Serialize>(
+        &self,
+        data: T,
+    ) -> Result<ParsedBody, ParseResponseBodyError>;
 }
 
-impl CtxParseBodyExt for HttpRequestContext {
-    fn parse_body<T: Serialize>(&self, data: T) -> Result<ParsedBody, ParseBodyError> {
+impl ContextResponseBodyParseExt for HttpRequestContext {
+    fn parse_response_body<T: Serialize>(
+        &self,
+        data: T,
+    ) -> Result<ParsedBody, ParseResponseBodyError> {
         #[cfg(feature = "json")]
         let parsed_data = serde_json::to_vec(&data)?;
         Ok(ParsedBody {
