@@ -19,7 +19,8 @@ impl ResponseBuilderExt for Response {}
 #[expect(clippy::result_large_err)]
 /// Returns helpers for `HttpRequestContext`
 pub trait ContextResponseReturnExt {
-    /// Continue to run the next handler
+    /// Continue to run the next handler.\
+    /// This overrides any `Response` already saved
     /// 
     /// # Errors
     /// Can return an `HTTPError` if inserting the `Response` goes wrong
@@ -36,14 +37,15 @@ pub trait ContextResponseReturnExt {
         Ok(ControlFlow::Continue(()))
     }
 
-    /// Stops the execution, not running the next handler
+    /// Stops the execution, not running the next handler.\
+    /// This overrides any `Response` already saved
     /// 
     /// # Errors
     /// Can return an `HTTPError` if inserting the `Response` goes wrong
     #[must_use = "Must be returned to be effective"]
     fn stop(&mut self, response: Response) -> Result<ControlFlow<()>, HttpError>;
 
-    /// Stops the execution, not running the next handler, without returning a `Response`.
+    /// Stops the execution, not running the next handler, without returning a `Response`.\
     /// **Only use if you know a `Response` is already inserted**
     /// 
     /// # Errors
