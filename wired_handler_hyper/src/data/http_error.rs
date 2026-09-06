@@ -80,7 +80,7 @@ impl HttpErrorFromResponseExt for HttpError {
     }
 }
 
-/// Creates constructors on `HttpError`.
+/// Creates constructors on `HttpError`.\
 /// Accepted format is: `generate_constructors!((name1, StatusCode::SOME_STATUS), (name2, StatusCode::SOME_OTHER_STATUS))`
 macro_rules! generate_constructors {
     (

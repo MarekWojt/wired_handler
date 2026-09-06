@@ -314,9 +314,9 @@ pub fn derive_context(token_stream: TokenStream) -> TokenStream {
     .into()
 }
 
-/** Derive `ContextBuilder`
-* `#[builder_ident = "MyBuilder"]` defines the name of the builder (required)
-* `#[global_state]` marks the global state (field) which is inserted when building (required)
+/** Derive `ContextBuilder`\
+* `#[builder_ident = "MyBuilder"]` defines the name of the builder (required)\
+* `#[global_state]` marks the global state (field) which is inserted when building (required)\
 * `#[state]` marks a state (field) which has to be inserted before building
 */
 #[proc_macro_derive(ContextBuilder, attributes(global_state, state, builder_ident))]
