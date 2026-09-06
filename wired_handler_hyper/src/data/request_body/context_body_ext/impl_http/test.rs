@@ -12,7 +12,7 @@ use crate::{
 
 #[test]
 fn test() {
-    let runtime = tokio::runtime::Runtime::new().unwrap();
+    let runtime = tokio::runtime::Builder::new_current_thread().build().unwrap();
     runtime.block_on(run_test());
 }
 

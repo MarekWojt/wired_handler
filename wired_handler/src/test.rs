@@ -7,7 +7,6 @@ use crate::{
     StateSyncGet, StateSyncGetCloned, StateSyncMutableGetMut, StateSyncMutableGetMutOrInsert,
     StateSyncMutableInsert, StateSyncMutableRemoveGet, plain::PlainState,
 };
-use tokio::runtime::Runtime;
 
 use crate::async_double_rwlock::AsyncDoubleRwLockState;
 
@@ -194,7 +193,7 @@ async fn handle(ctx: StartContext) -> EndContext {
 
 #[test]
 fn run_test() {
-    let runtime = Runtime::new().unwrap();
+    let runtime = tokio::runtime::Builder::new_current_thread().build().unwrap();
 
     runtime.block_on(test());
 }

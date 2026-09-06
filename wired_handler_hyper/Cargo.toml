@@ -13,7 +13,7 @@ tracing.workspace = true
 uuid.workspace = true
 
 futures.workspace = true
-tokio.workspace = true
+tokio = { workspace = true, features = ["net"] }
 async_fn_traits.workspace = true
 
 hyper.workspace = true
@@ -29,6 +29,9 @@ serde_json = { workspace = true, optional = true }
 diesel = { workspace = true, optional = true }
 diesel-async = { workspace = true, optional = true }
 diesel_migrations = { workspace = true, optional = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["net", "rt"] }
 
 [features]
 default = ["json", "diesel", "websocket"]

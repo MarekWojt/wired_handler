@@ -12,5 +12,5 @@ wired_handler_derive.workspace = true
 rustc-hash.workspace = true
 
 [dev-dependencies]
-tokio = { workspace = true, features = ["rt-multi-thread"] }
+tokio = { workspace = true, features = ["rt"] }
 thiserror.workspace = true
