@@ -68,4 +68,5 @@ impl ContextResponseReturnExt for HttpRequestContext {
     }
 }
 
-// TODO: test
+#[cfg(test)]
+mod test;
